@@ -1,0 +1,1178 @@
+<!DOCTYPE html>
+<html lang="ro">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="FitPlan 30">
+<meta name="theme-color" content="#0a0a0a">
+<title>FitPlan 30 — Slăbire 8kg</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg:#0a0a0a; --surface:#141414; --surface2:#1e1e1e; --surface3:#282828;
+  --accent:#c8f135; --accent-dim:rgba(200,241,53,0.12);
+  --red:#ff4757; --red-dim:rgba(255,71,87,0.12);
+  --blue:#3ecfff; --blue-dim:rgba(62,207,255,0.12);
+  --orange:#ff9f43; --orange-dim:rgba(255,159,67,0.12);
+  --green:#4caf50; --green-dim:rgba(76,175,80,0.12);
+  --text:#f0f0f0; --text2:#a0a0a0; --border:#2a2a2a;
+  --nav-h:64px; --safe-bottom:env(safe-area-inset-bottom,0px);
+}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+html,body{height:100%;overflow:hidden}
+body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;overscroll-behavior:none}
+
+.screen{position:fixed;inset:0;bottom:calc(var(--nav-h) + var(--safe-bottom));overflow-y:auto;overflow-x:hidden;display:none;-webkit-overflow-scrolling:touch}
+.screen.active{display:block}
+
+/* NAV */
+.nav{position:fixed;bottom:0;left:0;right:0;height:calc(var(--nav-h) + var(--safe-bottom));padding-bottom:var(--safe-bottom);background:var(--surface);border-top:1px solid var(--border);display:flex;align-items:stretch;z-index:100}
+.nav-btn{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;cursor:pointer;background:none;border:none;color:var(--text2);font-family:'DM Sans',sans-serif;transition:color .2s;padding-top:8px}
+.nav-btn.active{color:var(--accent)}
+.nav-icon{font-size:22px;line-height:1}
+.nav-label{font-size:10px;font-weight:500;text-transform:uppercase;letter-spacing:.5px}
+
+/* HERO */
+.hero{background:linear-gradient(160deg,#111 0%,#0a0a0a 100%);padding:28px 20px 20px;border-bottom:1px solid var(--border);position:relative;overflow:hidden}
+.hero::before{content:'';position:absolute;top:-40px;right:-40px;width:180px;height:180px;background:radial-gradient(circle,rgba(200,241,53,.06) 0%,transparent 70%)}
+.hero-tag{font-size:10px;letter-spacing:3px;text-transform:uppercase;color:var(--accent);font-weight:600;margin-bottom:6px}
+.hero-title{font-family:'Bebas Neue',sans-serif;font-size:38px;line-height:1;letter-spacing:1px}
+.hero-title span{color:var(--accent)}
+.hero-sub{font-size:13px;color:var(--text2);margin-top:4px}
+
+/* STATS */
+.stat-strip{display:grid;grid-template-columns:repeat(4,1fr);gap:1px;background:var(--border);border-bottom:1px solid var(--border)}
+.stat-cell{background:var(--surface);padding:14px 10px;text-align:center}
+.stat-v{font-family:'Bebas Neue',sans-serif;font-size:24px;color:var(--accent);line-height:1}
+.stat-l{font-size:9px;color:var(--text2);text-transform:uppercase;letter-spacing:1px;margin-top:2px}
+
+/* DAY TABS */
+.day-tabs{display:flex;overflow-x:auto;scrollbar-width:none;padding:0 12px;gap:6px;border-bottom:1px solid var(--border);background:var(--surface)}
+.day-tabs::-webkit-scrollbar{display:none}
+.day-tab{display:flex;flex-direction:column;align-items:center;padding:10px 12px;cursor:pointer;min-width:52px;border-bottom:2px solid transparent;background:none;border-top:none;border-left:none;border-right:none;font-family:'DM Sans',sans-serif;transition:all .15s;position:relative}
+.day-tab .dn{font-family:'Bebas Neue',sans-serif;font-size:20px;color:var(--text2);line-height:1}
+.day-tab .dl{font-size:9px;color:var(--text2);text-transform:uppercase;letter-spacing:1px;margin-top:1px}
+.day-tab.active .dn,.day-tab.active .dl{color:var(--accent)}
+.day-tab.active{border-bottom-color:var(--accent)}
+.day-tab .done-dot{position:absolute;top:6px;right:8px;width:6px;height:6px;border-radius:50%;background:var(--green);display:none}
+.day-tab.day-done .done-dot{display:block}
+
+.day-page{display:none;padding:16px 16px 8px}
+.day-page.active{display:block}
+
+/* MEAL CARD */
+.meal-card{background:var(--surface);border:1px solid var(--border);border-radius:14px;overflow:hidden;margin-bottom:14px;transition:border-color .3s}
+.meal-card.eaten{border-color:var(--green)}
+.meal-head{display:flex;justify-content:space-between;align-items:center;padding:14px 16px;background:var(--surface2);border-bottom:1px solid var(--border)}
+.meal-head-left{flex:1}
+.meal-time{font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--accent);font-weight:600}
+.meal-name{font-size:15px;font-weight:600;margin-top:2px}
+.meal-head-right{display:flex;flex-direction:column;align-items:flex-end;gap:6px}
+.meal-kcal{font-family:'Bebas Neue',sans-serif;font-size:28px;color:var(--red);line-height:1;text-align:right}
+.meal-kcal small{font-size:10px;font-family:'DM Sans',sans-serif;color:var(--text2);display:block}
+
+/* MEAL ACTION BUTTONS */
+.meal-actions{display:flex;gap:8px;padding:10px 16px;border-top:1px solid var(--border);background:var(--surface2)}
+.btn-eaten{flex:1;display:flex;align-items:center;justify-content:center;gap:8px;padding:10px;border-radius:10px;border:none;font-family:'DM Sans',sans-serif;font-size:13px;font-weight:600;cursor:pointer;background:var(--green-dim);color:var(--green);border:1px solid rgba(76,175,80,.3);transition:all .2s}
+.btn-eaten.done{background:var(--green);color:#fff;border-color:var(--green)}
+.btn-reroll{display:flex;align-items:center;justify-content:center;gap:6px;padding:10px 14px;border-radius:10px;border:1px solid var(--border);font-family:'DM Sans',sans-serif;font-size:13px;font-weight:600;cursor:pointer;background:var(--surface3);color:var(--text2);transition:all .2s}
+.btn-reroll:active{background:var(--blue-dim);color:var(--blue);border-color:var(--blue)}
+
+.ing-row{display:flex;justify-content:space-between;padding:9px 16px;border-bottom:1px solid var(--border);font-size:13px}
+.ing-row:last-child{border-bottom:none}
+.ing-n{color:#d0d0d0}
+.ing-q{color:var(--text2);font-size:12px}
+
+/* PREP */
+.prep-wrap{padding:14px 16px;border-top:1px solid var(--border)}
+.prep-label{font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--blue);font-weight:600;margin-bottom:10px}
+.prep-step{display:flex;gap:10px;margin-bottom:8px;font-size:13px;color:#c0c0c0;line-height:1.5}
+.step-n{font-family:'Bebas Neue',sans-serif;font-size:20px;color:var(--border);min-width:20px;line-height:1;margin-top:1px}
+.prep-tip{background:var(--accent-dim);border-left:2px solid var(--accent);border-radius:0 6px 6px 0;padding:10px 12px;font-size:12px;color:var(--text2);margin-top:10px;line-height:1.5}
+.prep-tip strong{color:var(--accent)}
+
+/* RE-ROLL OVERLAY */
+.reroll-overlay{position:fixed;inset:0;background:rgba(0,0,0,.85);z-index:200;display:none;align-items:flex-end}
+.reroll-overlay.open{display:flex}
+.reroll-sheet{background:var(--surface);border-radius:20px 20px 0 0;padding:24px 20px 40px;width:100%;max-height:80vh;overflow-y:auto}
+.reroll-title{font-family:'Bebas Neue',sans-serif;font-size:24px;letter-spacing:1px;margin-bottom:4px}
+.reroll-subtitle{font-size:13px;color:var(--text2);margin-bottom:20px}
+.reroll-option{background:var(--surface2);border:1px solid var(--border);border-radius:12px;padding:14px 16px;margin-bottom:10px;cursor:pointer;transition:all .2s}
+.reroll-option:active{border-color:var(--accent);background:var(--accent-dim)}
+.reroll-opt-name{font-size:15px;font-weight:600;margin-bottom:4px}
+.reroll-opt-desc{font-size:12px;color:var(--text2);line-height:1.5}
+.reroll-opt-kcal{font-family:'Bebas Neue',sans-serif;font-size:18px;color:var(--orange);margin-top:6px}
+.reroll-close{width:100%;padding:14px;background:var(--surface3);border:none;border-radius:12px;color:var(--text2);font-family:'DM Sans',sans-serif;font-size:14px;font-weight:600;cursor:pointer;margin-top:4px}
+
+/* TODAY SCREEN */
+.today-card{margin:16px;background:var(--surface);border:1px solid var(--border);border-radius:14px;overflow:hidden}
+.today-head{padding:14px 16px;background:var(--surface2);border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center}
+.today-title{font-family:'Bebas Neue',sans-serif;font-size:20px;letter-spacing:1px}
+.today-day{font-size:12px;color:var(--accent);font-weight:600}
+.today-row{display:flex;gap:12px;align-items:center;padding:12px 16px;border-bottom:1px solid var(--border);font-size:14px;transition:opacity .3s}
+.today-row:last-child{border-bottom:none}
+.today-row.done-row{opacity:.5;text-decoration:line-through;color:var(--text2)}
+.today-dot{width:8px;height:8px;border-radius:50%;background:var(--accent);flex-shrink:0}
+.today-dot.red{background:var(--red)}
+.today-dot.blue{background:var(--blue)}
+.today-dot.done{background:var(--green)}
+
+/* CALENDAR on AZI */
+.week-calendar{margin:0 16px 16px;background:var(--surface);border:1px solid var(--border);border-radius:14px;overflow:hidden}
+.wc-head{padding:12px 16px;background:var(--surface2);border-bottom:1px solid var(--border);font-family:'Bebas Neue',sans-serif;font-size:16px;letter-spacing:1px}
+.wc-days{display:grid;grid-template-columns:repeat(7,1fr);gap:1px;background:var(--border)}
+.wc-day{background:var(--surface);padding:10px 4px;text-align:center;cursor:pointer}
+.wc-day .wcd-name{font-size:9px;text-transform:uppercase;color:var(--text2);letter-spacing:1px}
+.wc-day .wcd-num{font-family:'Bebas Neue',sans-serif;font-size:22px;color:var(--text2);line-height:1;margin-top:2px}
+.wc-day.today .wcd-num{color:var(--accent)}
+.wc-day.day-complete .wcd-num{color:var(--green)}
+.wc-day .wcd-dots{display:flex;justify-content:center;gap:2px;margin-top:3px;min-height:6px}
+.wcd-dot{width:5px;height:5px;border-radius:50%;background:var(--green)}
+
+/* WORKOUT */
+.workout-header{display:flex;justify-content:space-between;align-items:center;padding:16px 20px;background:var(--surface2);border-bottom:1px solid var(--border)}
+.wk-type{font-family:'Bebas Neue',sans-serif;font-size:28px;letter-spacing:1px}
+.wk-badge{font-size:11px;font-weight:600;padding:4px 10px;border-radius:20px;text-transform:uppercase;letter-spacing:1px}
+.badge-force{background:var(--accent-dim);color:var(--accent)}
+.badge-hiit{background:var(--red-dim);color:var(--red)}
+.ex-card{background:var(--surface);border:1px solid var(--border);border-radius:14px;overflow:hidden;margin:0 16px 12px}
+.ex-row{display:flex;justify-content:space-between;align-items:center;padding:13px 16px;border-bottom:1px solid var(--border)}
+.ex-row:last-child{border-bottom:none}
+.ex-name{font-size:14px;font-weight:500}
+.ex-detail{font-size:11px;color:var(--text2);margin-top:2px}
+.ex-sets{font-family:'Bebas Neue',sans-serif;font-size:20px;color:var(--accent);text-align:right;line-height:1}
+.ex-sets small{font-size:10px;font-family:'DM Sans',sans-serif;color:var(--text2);display:block}
+
+/* TIMER */
+.timer-wrap{margin:16px;background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:24px 20px;text-align:center}
+.timer-label{font-size:11px;letter-spacing:2px;text-transform:uppercase;color:var(--text2);margin-bottom:8px}
+.timer-display{font-family:'Bebas Neue',sans-serif;font-size:72px;color:var(--accent);line-height:1;letter-spacing:4px}
+.timer-display.rest{color:var(--blue)}
+.timer-btns{display:flex;gap:10px;justify-content:center;margin-top:16px}
+.timer-btn{padding:12px 24px;border-radius:10px;border:none;font-family:'Bebas Neue',sans-serif;font-size:18px;letter-spacing:1px;cursor:pointer}
+.timer-btn.start{background:var(--accent);color:#0a0a0a}
+.timer-btn.pause{background:var(--orange);color:#0a0a0a}
+.timer-btn.reset{background:var(--surface3);color:var(--text)}
+.timer-presets{display:flex;gap:8px;justify-content:center;margin-top:12px;flex-wrap:wrap}
+.preset-btn{padding:6px 14px;border-radius:20px;border:1px solid var(--border);background:var(--surface2);color:var(--text2);font-size:12px;font-family:'DM Sans',sans-serif;cursor:pointer}
+
+/* PROGRESS */
+.progress-card{margin:16px;background:var(--surface);border:1px solid var(--border);border-radius:14px;overflow:hidden}
+.progress-head{padding:14px 16px;background:var(--surface2);border-bottom:1px solid var(--border)}
+.progress-head-title{font-family:'Bebas Neue',sans-serif;font-size:18px;letter-spacing:1px}
+.prog-row{padding:12px 16px;border-bottom:1px solid var(--border)}
+.prog-row:last-child{border-bottom:none}
+.prog-info{display:flex;justify-content:space-between;font-size:13px;margin-bottom:6px}
+.prog-bar-wrap{height:5px;background:var(--surface3);border-radius:3px;overflow:hidden}
+.prog-bar-fill{height:100%;background:var(--accent);border-radius:3px}
+
+/* SHOPPING */
+.shop-progress-bar{display:flex;align-items:center;gap:12px;padding:12px 20px;background:var(--surface);border-bottom:1px solid var(--border);position:sticky;top:0;z-index:10}
+.sp-bar{flex:1;height:5px;background:var(--border);border-radius:3px;overflow:hidden}
+.sp-fill{height:100%;background:var(--accent);border-radius:3px;transition:width .4s}
+.sp-text{font-size:12px;font-weight:600;color:var(--accent);white-space:nowrap}
+.sp-reset{font-size:11px;color:var(--text2);background:none;border:1px solid var(--border);border-radius:6px;padding:4px 10px;cursor:pointer;font-family:'DM Sans',sans-serif}
+.shop-filters{display:flex;gap:8px;padding:12px 16px;overflow-x:auto;scrollbar-width:none}
+.shop-filters::-webkit-scrollbar{display:none}
+.sf-btn{padding:6px 14px;border-radius:20px;border:1px solid var(--border);background:var(--surface2);color:var(--text2);font-size:12px;font-weight:500;cursor:pointer;white-space:nowrap;font-family:'DM Sans',sans-serif}
+.sf-btn.active{background:var(--accent-dim);color:var(--accent);border-color:var(--accent)}
+.shop-cat{padding:0 16px 4px}
+.shop-cat-head{display:flex;align-items:center;gap:8px;padding:14px 0 8px;border-bottom:1px solid var(--border);margin-bottom:8px}
+.shop-cat-icon{font-size:18px}
+.shop-cat-name{font-family:'Bebas Neue',sans-serif;font-size:18px;letter-spacing:1px;flex:1}
+.shop-cat-cnt{font-size:11px;color:var(--text2)}
+.shop-cat.hidden{display:none}
+.shop-item{display:flex;align-items:center;gap:12px;padding:12px 14px;background:var(--surface);border:1px solid var(--border);border-radius:10px;margin-bottom:8px;cursor:pointer;transition:all .15s;user-select:none}
+.shop-item.checked{opacity:.45}
+.shop-item.checked .si-name{text-decoration:line-through;color:var(--text2)}
+.si-cb{width:22px;height:22px;border-radius:6px;border:2px solid var(--border);background:var(--surface2);display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:13px;transition:all .15s}
+.shop-item.checked .si-cb{background:#2d6a4f;border-color:#2d6a4f;color:#fff}
+.si-info{flex:1}
+.si-name{font-size:14px;font-weight:500}
+.si-note{font-size:11px;color:var(--text2);margin-top:1px}
+.si-qty{font-family:'Bebas Neue',sans-serif;font-size:17px;color:var(--orange);line-height:1}
+
+/* INSTALL */
+.install-banner{margin:16px;background:var(--accent-dim);border:1px solid rgba(200,241,53,.3);border-radius:12px;padding:14px 16px;display:flex;align-items:center;gap:12px}
+.install-icon{font-size:28px}
+.install-text{flex:1;font-size:13px;color:var(--text2);line-height:1.5}
+.install-text strong{color:var(--accent);font-size:14px;display:block;margin-bottom:2px}
+#installBtn{background:var(--accent);color:#0a0a0a;border:none;border-radius:8px;padding:8px 16px;font-family:'Bebas Neue',sans-serif;font-size:16px;letter-spacing:1px;cursor:pointer;white-space:nowrap}
+
+/* UTILS */
+.note-box{background:var(--surface2);border-radius:8px;padding:12px 14px;font-size:13px;color:var(--text2);line-height:1.6;margin:0 16px 12px}
+.note-box strong{color:var(--accent)}
+.hl-box{background:var(--accent-dim);border:1px solid rgba(200,241,53,.2);border-radius:8px;padding:12px 14px;font-size:13px;color:var(--text2);line-height:1.6;margin:0 16px 12px}
+.hl-box strong{color:var(--accent)}
+.rest-day{text-align:center;padding:40px 20px}
+.rest-day .big{font-family:'Bebas Neue',sans-serif;font-size:64px;color:var(--border);line-height:1}
+.rest-day p{color:var(--text2);font-size:14px;line-height:1.6;margin-top:12px}
+
+/* TOAST */
+.toast{position:fixed;bottom:calc(var(--nav-h) + var(--safe-bottom) + 16px);left:50%;transform:translateX(-50%) translateY(20px);background:var(--green);color:#fff;font-size:14px;font-weight:600;padding:12px 24px;border-radius:30px;z-index:300;opacity:0;transition:all .3s;pointer-events:none;white-space:nowrap}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+</style>
+</head>
+<body>
+
+<!-- TOAST -->
+<div class="toast" id="toast"></div>
+
+<!-- RE-ROLL OVERLAY -->
+<div class="reroll-overlay" id="rerollOverlay" onclick="closeReroll(event)">
+  <div class="reroll-sheet" id="rerollSheet">
+    <div class="reroll-title">🔀 Alternativă</div>
+    <div class="reroll-subtitle" id="rerollSubtitle">Alege o rețetă alternativă</div>
+    <div id="rerollOptions"></div>
+    <button class="reroll-close" onclick="closeReroll()">Păstrez rețeta originală</button>
+  </div>
+</div>
+
+<!-- ══════ SCREEN: AZI ══════ -->
+<div id="screen-azi" class="screen active">
+  <div class="hero">
+    <div class="hero-tag" id="aziTag">Programul tău · Zi 1 din 30</div>
+    <div class="hero-title">FITPLAN <span>30</span></div>
+    <div class="hero-sub">IF 16:8 · 11:00–19:00 · 85kg → 77kg</div>
+  </div>
+  <div class="stat-strip">
+    <div class="stat-cell"><div class="stat-v">1850</div><div class="stat-l">kcal/zi</div></div>
+    <div class="stat-cell"><div class="stat-v">155g</div><div class="stat-l">Proteine</div></div>
+    <div class="stat-cell"><div class="stat-v">16h</div><div class="stat-l">Post</div></div>
+    <div class="stat-cell"><div class="stat-v" id="aziDayNum">1</div><div class="stat-l">Ziua</div></div>
+  </div>
+
+  <div id="installBanner" class="install-banner">
+    <div class="install-icon">📲</div>
+    <div class="install-text"><strong>Instalează aplicația</strong>Adaugă pe ecranul principal pentru acces rapid</div>
+    <button id="installBtn" onclick="doInstall()">INSTALEAZĂ</button>
+  </div>
+
+  <!-- CALENDAR SĂPTĂMÂNAL -->
+  <div class="week-calendar">
+    <div class="wc-head">📅 SĂPTĂMÂNA CURENTĂ</div>
+    <div class="wc-days" id="weekCalendar"></div>
+  </div>
+
+  <!-- AZI CARD -->
+  <div class="today-card">
+    <div class="today-head">
+      <div class="today-title" id="aziDayName">AZI — LUNI</div>
+      <div class="today-day" id="aziDayLabel">Ziua 1</div>
+    </div>
+    <div class="today-row" id="todayMeal1Row">
+      <div class="today-dot" id="todayMeal1Dot"></div>
+      <div id="todayMeal1Text">🕚 11:00 — Omletă cu cartofi · 940 kcal</div>
+    </div>
+    <div class="today-row" id="todayWorkoutRow">
+      <div class="today-dot red" id="todayWorkoutDot"></div>
+      <div id="todayWorkoutText">💪 16:00 — Forță Superior (40 min)</div>
+    </div>
+    <div class="today-row" id="todayMeal2Row">
+      <div class="today-dot blue" id="todayMeal2Dot"></div>
+      <div id="todayMeal2Text">🕖 19:00 — Pui cu orez și salată · 900 kcal</div>
+    </div>
+  </div>
+
+  <div class="hl-box"><strong>⏱ Post activ: 19:00 → 11:00</strong><br>Poți bea: apă, sifon simplu, cafea neagră, ceai.</div>
+
+  <div class="progress-card">
+    <div class="progress-head"><div class="progress-head-title">📊 Progres estimat · 30 zile</div></div>
+    <div class="prog-row"><div class="prog-info"><span>Săptămâna 1</span><span style="color:var(--text2)">-1.5 kg</span></div><div class="prog-bar-wrap"><div class="prog-bar-fill" style="width:19%"></div></div></div>
+    <div class="prog-row"><div class="prog-info"><span>Săptămâna 2</span><span style="color:var(--text2)">-3 kg cumul</span></div><div class="prog-bar-wrap"><div class="prog-bar-fill" style="width:37%"></div></div></div>
+    <div class="prog-row"><div class="prog-info"><span>Săptămâna 3</span><span style="color:var(--text2)">-5 kg cumul</span></div><div class="prog-bar-wrap"><div class="prog-bar-fill" style="width:62%"></div></div></div>
+    <div class="prog-row"><div class="prog-info"><span>Săptămâna 4</span><span style="color:var(--text2)">-8 kg cumul</span></div><div class="prog-bar-wrap"><div class="prog-bar-fill" style="width:100%"></div></div></div>
+  </div>
+</div>
+
+<!-- ══════ SCREEN: MESE ══════ -->
+<div id="screen-mese" class="screen">
+  <div class="hero">
+    <div class="hero-tag">Plan alimentar · 7 zile</div>
+    <div class="hero-title">MESE <span>&</span><br>REȚETE</div>
+    <div class="hero-sub">2 mese/zi · ~1850 kcal · Fără pește</div>
+  </div>
+  <div class="day-tabs" id="meseTabs">
+    <button class="day-tab active" onclick="showMeseDay(0,this)"><span class="dn">L</span><span class="dl">Luni</span><span class="done-dot"></span></button>
+    <button class="day-tab" onclick="showMeseDay(1,this)"><span class="dn">M</span><span class="dl">Marți</span><span class="done-dot"></span></button>
+    <button class="day-tab" onclick="showMeseDay(2,this)"><span class="dn">M</span><span class="dl">Miercuri</span><span class="done-dot"></span></button>
+    <button class="day-tab" onclick="showMeseDay(3,this)"><span class="dn">J</span><span class="dl">Joi</span><span class="done-dot"></span></button>
+    <button class="day-tab" onclick="showMeseDay(4,this)"><span class="dn">V</span><span class="dl">Vineri</span><span class="done-dot"></span></button>
+    <button class="day-tab" onclick="showMeseDay(5,this)"><span class="dn">S</span><span class="dl">Sâmbătă</span><span class="done-dot"></span></button>
+    <button class="day-tab" onclick="showMeseDay(6,this)"><span class="dn">D</span><span class="dl">Duminică</span><span class="done-dot"></span></button>
+  </div>
+
+  <!-- LUNI -->
+  <div class="day-page active" id="mese-0">
+    <div class="meal-card" id="mc-0-0">
+      <div class="meal-head">
+        <div class="meal-head-left"><div class="meal-time">🕚 Ora 11:00</div><div class="meal-name" id="mn-0-0">Omletă cu cartofi și ardei</div></div>
+        <div class="meal-head-right"><div class="meal-kcal" id="mk-0-0">940<small>kcal</small></div></div>
+      </div>
+      <div id="mi-0-0">
+        <div class="ing-row"><span class="ing-n">🥚 Ouă întregi</span><span class="ing-q">4 buc</span></div>
+        <div class="ing-row"><span class="ing-n">🥔 Cartofi prăjiți</span><span class="ing-q">250g</span></div>
+        <div class="ing-row"><span class="ing-n">🧅 Ceapă + ardei roșu</span><span class="ing-q">1 buc fiecare</span></div>
+        <div class="ing-row"><span class="ing-n">🍞 Pâine integrală</span><span class="ing-q">2 felii</span></div>
+        <div class="ing-row"><span class="ing-n">🧀 Cașcaval slab + șuncă pui</span><span class="ing-q">40g + 60g</span></div>
+      </div>
+      <div class="prep-wrap">
+        <div class="prep-label">👨‍🍳 Preparare</div>
+        <div class="prep-step"><div class="step-n">1</div><div>Fierbe cartofii cuburi în apă cu sare <strong>15 min</strong>. Scurge bine.</div></div>
+        <div class="prep-step"><div class="step-n">2</div><div>Tigaie cu 3 spray-uri ulei, cartofi la foc mediu <strong>5 min</strong>.</div></div>
+        <div class="prep-step"><div class="step-n">3</div><div>Adaugă ceapa și ardeiul cuburi, <strong>3 min</strong>.</div></div>
+        <div class="prep-step"><div class="step-n">4</div><div>Bate ouăle cu sare, toarnă peste, amestecă ușor.</div></div>
+        <div class="prep-step"><div class="step-n">5</div><div>Servește cu pâine, șuncă și cașcaval. <em style="color:var(--blue)">⏱ ~25 min</em></div></div>
+        <div class="prep-tip"><strong>💡</strong> Fierbe cartofii seara înainte — dimineața îi prăjești direct.</div>
+      </div>
+      <div class="meal-actions">
+        <button class="btn-eaten" id="eat-0-0" onclick="toggleEaten(0,0)">✓ Am mâncat</button>
+        <button class="btn-reroll" onclick="openReroll(0,0,'11:00')">🔀 Alt preparat</button>
+      </div>
+    </div>
+    <div class="meal-card" id="mc-0-1">
+      <div class="meal-head">
+        <div class="meal-head-left"><div class="meal-time">🕖 Ora 19:00</div><div class="meal-name" id="mn-0-1">Pui cu orez și salată</div></div>
+        <div class="meal-head-right"><div class="meal-kcal" id="mk-0-1">900<small>kcal</small></div></div>
+      </div>
+      <div id="mi-0-1">
+        <div class="ing-row"><span class="ing-n">🍗 Piept de pui la cuptor</span><span class="ing-q">250g</span></div>
+        <div class="ing-row"><span class="ing-n">🍚 Orez fiert</span><span class="ing-q">200g gătit</span></div>
+        <div class="ing-row"><span class="ing-n">🧀 Cașcaval ras pe orez</span><span class="ing-q">30g</span></div>
+        <div class="ing-row"><span class="ing-n">🥗 Roșii + castraveți + ceapă</span><span class="ing-q">liberă</span></div>
+      </div>
+      <div class="prep-wrap">
+        <div class="prep-label">👨‍🍳 Preparare</div>
+        <div class="prep-step"><div class="step-n">1</div><div>Marinează puiul: boia + usturoi + sare + piper + ulei, <strong>min 10 min</strong>.</div></div>
+        <div class="prep-step"><div class="step-n">2</div><div>Orez: 1 parte orez + 2 apă + sare. Foc mic, capac, <strong>18 min</strong>.</div></div>
+        <div class="prep-step"><div class="step-n">3</div><div>Pui la cuptor <strong>200°C, 25–30 min</strong>. <em style="color:var(--blue)">⏱ ~35 min</em></div></div>
+        <div class="prep-tip"><strong>💡</strong> Fă puiul dublu — jumătate la frigider pentru mâine.</div>
+      </div>
+      <div class="meal-actions">
+        <button class="btn-eaten" id="eat-0-1" onclick="toggleEaten(0,1)">✓ Am mâncat</button>
+        <button class="btn-reroll" onclick="openReroll(0,1,'19:00')">🔀 Alt preparat</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MARTI -->
+  <div class="day-page" id="mese-1">
+    <div class="meal-card" id="mc-1-0">
+      <div class="meal-head">
+        <div class="meal-head-left"><div class="meal-time">🕚 Ora 11:00</div><div class="meal-name" id="mn-1-0">Ovăz cu banane și ouă fierte</div></div>
+        <div class="meal-head-right"><div class="meal-kcal" id="mk-1-0">900<small>kcal</small></div></div>
+      </div>
+      <div id="mi-1-0">
+        <div class="ing-row"><span class="ing-n">🌾 Fulgi ovăz cu lapte</span><span class="ing-q">100g uscați</span></div>
+        <div class="ing-row"><span class="ing-n">🍌 Banane</span><span class="ing-q">2 bucăți</span></div>
+        <div class="ing-row"><span class="ing-n">🥚 Ouă fierte</span><span class="ing-q">3 bucăți</span></div>
+        <div class="ing-row"><span class="ing-n">🧀 Cașcaval slab</span><span class="ing-q">50g</span></div>
+        <div class="ing-row"><span class="ing-n">🍯 Miere</span><span class="ing-q">1 linguriță</span></div>
+      </div>
+      <div class="prep-wrap">
+        <div class="prep-label">👨‍🍳 Preparare</div>
+        <div class="prep-step"><div class="step-n">1</div><div>Fierbe ouăle din apă rece — <strong>10 min</strong>. Răcește în apă rece.</div></div>
+        <div class="prep-step"><div class="step-n">2</div><div>Ovăz: 100g + 250ml lapte, foc mic, <strong>5 min</strong> până e cremos. Adaugă miere.</div></div>
+        <div class="prep-step"><div class="step-n">3</div><div>Banana feliată deasupra. Ouă și cașcaval alături. <em style="color:var(--blue)">⏱ ~15 min</em></div></div>
+        <div class="prep-tip"><strong>💡 Overnight:</strong> Seara: ovăz + lapte rece + miere în borcan la frigider. Dimineața e gata.</div>
+      </div>
+      <div class="meal-actions">
+        <button class="btn-eaten" id="eat-1-0" onclick="toggleEaten(1,0)">✓ Am mâncat</button>
+        <button class="btn-reroll" onclick="openReroll(1,0,'11:00')">🔀 Alt preparat</button>
+      </div>
+    </div>
+    <div class="meal-card" id="mc-1-1">
+      <div class="meal-head">
+        <div class="meal-head-left"><div class="meal-time">🕖 Ora 19:00</div><div class="meal-name" id="mn-1-1">Tocăniță de vită cu cartofi</div></div>
+        <div class="meal-head-right"><div class="meal-kcal" id="mk-1-1">950<small>kcal</small></div></div>
+      </div>
+      <div id="mi-1-1">
+        <div class="ing-row"><span class="ing-n">🥩 Carne vită pulpă</span><span class="ing-q">200g</span></div>
+        <div class="ing-row"><span class="ing-n">🥔 Cartofi</span><span class="ing-q">300g</span></div>
+        <div class="ing-row"><span class="ing-n">🍅 Roșii tocate + ceapă + ardei</span><span class="ing-q">câte 1 buc</span></div>
+        <div class="ing-row"><span class="ing-n">🧄 Usturoi + cimbru + sare</span><span class="ing-q">după gust</span></div>
+      </div>
+      <div class="prep-wrap">
+        <div class="prep-label">👨‍🍳 Preparare</div>
+        <div class="prep-step"><div class="step-n">1</div><div>Călit ceapă 3 min, adaugă carnea cuburi, rumenește <strong>5 min</strong>.</div></div>
+        <div class="prep-step"><div class="step-n">2</div><div>Adaugă usturoi, legume, roșii + 200ml apă + cimbru. Capac, foc mic, <strong>30 min</strong>.</div></div>
+        <div class="prep-step"><div class="step-n">3</div><div>Adaugă cartofii, fierbe <strong>20 min</strong>. <em style="color:var(--blue)">⏱ ~55 min</em></div></div>
+        <div class="prep-tip"><strong>💡</strong> Fă oala dublă — mâine reîncălzești în 5 min.</div>
+      </div>
+      <div class="meal-actions">
+        <button class="btn-eaten" id="eat-1-1" onclick="toggleEaten(1,1)">✓ Am mâncat</button>
+        <button class="btn-reroll" onclick="openReroll(1,1,'19:00')">🔀 Alt preparat</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MIERCURI -->
+  <div class="day-page" id="mese-2">
+    <div class="meal-card" id="mc-2-0">
+      <div class="meal-head">
+        <div class="meal-head-left"><div class="meal-time">🕚 Ora 11:00</div><div class="meal-name" id="mn-2-0">Ouă jumări cu cașcaval</div></div>
+        <div class="meal-head-right"><div class="meal-kcal" id="mk-2-0">900<small>kcal</small></div></div>
+      </div>
+      <div id="mi-2-0">
+        <div class="ing-row"><span class="ing-n">🥚 Ouă</span><span class="ing-q">4 bucăți</span></div>
+        <div class="ing-row"><span class="ing-n">🍞 Pâine integrală</span><span class="ing-q">3 felii</span></div>
+        <div class="ing-row"><span class="ing-n">🧀 Cașcaval slab topit</span><span class="ing-q">50g</span></div>
+        <div class="ing-row"><span class="ing-n">🍅 Roșii + banană</span><span class="ing-q">după gust</span></div>
+      </div>
+      <div class="prep-wrap">
+        <div class="prep-label">👨‍🍳 Preparare</div>
+        <div class="prep-step"><div class="step-n">1</div><div>Tigaie foc mic, 2 spray-uri. Sparge ouăle, lasă albușul să se prindă.</div></div>
+        <div class="prep-step"><div class="step-n">2</div><div>Cașcaval ras deasupra, <strong>capac 1 min</strong> să se topească.</div></div>
+        <div class="prep-step"><div class="step-n">3</div><div>Servește cu pâine și roșii. <em style="color:var(--blue)">⏱ ~10 min</em></div></div>
+      </div>
+      <div class="meal-actions">
+        <button class="btn-eaten" id="eat-2-0" onclick="toggleEaten(2,0)">✓ Am mâncat</button>
+        <button class="btn-reroll" onclick="openReroll(2,0,'11:00')">🔀 Alt preparat</button>
+      </div>
+    </div>
+    <div class="meal-card" id="mc-2-1">
+      <div class="meal-head">
+        <div class="meal-head-left"><div class="meal-time">🕖 Ora 19:00</div><div class="meal-name" id="mn-2-1">Mușchi de porc cu paste</div></div>
+        <div class="meal-head-right"><div class="meal-kcal" id="mk-2-1">930<small>kcal</small></div></div>
+      </div>
+      <div id="mi-2-1">
+        <div class="ing-row"><span class="ing-n">🥩 Mușchi de porc</span><span class="ing-q">220g</span></div>
+        <div class="ing-row"><span class="ing-n">🍝 Paste integrale</span><span class="ing-q">180g gătite</span></div>
+        <div class="ing-row"><span class="ing-n">🥕 Morcovi fierți</span><span class="ing-q">200g</span></div>
+        <div class="ing-row"><span class="ing-n">🧄 Usturoi + boia + rozmarin</span><span class="ing-q">după gust</span></div>
+      </div>
+      <div class="prep-wrap">
+        <div class="prep-label">👨‍🍳 Preparare</div>
+        <div class="prep-step"><div class="step-n">1</div><div>Cuptor 200°C. Freacă mușchiul cu boia + usturoi + rozmarin + sare + ulei.</div></div>
+        <div class="prep-step"><div class="step-n">2</div><div>La cuptor <strong>30 min</strong>. Odihnă 5 min înainte de tăiat.</div></div>
+        <div class="prep-step"><div class="step-n">3</div><div>Paste conform pachet (~10 min). Morcovi fierți 15 min. <em style="color:var(--blue)">⏱ ~35 min</em></div></div>
+      </div>
+      <div class="meal-actions">
+        <button class="btn-eaten" id="eat-2-1" onclick="toggleEaten(2,1)">✓ Am mâncat</button>
+        <button class="btn-reroll" onclick="openReroll(2,1,'19:00')">🔀 Alt preparat</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- JOI -->
+  <div class="day-page" id="mese-3">
+    <div class="meal-card" id="mc-3-0">
+      <div class="meal-head">
+        <div class="meal-head-left"><div class="meal-time">🕚 Ora 11:00</div><div class="meal-name" id="mn-3-0">Sendviș consistent</div></div>
+        <div class="meal-head-right"><div class="meal-kcal" id="mk-3-0">930<small>kcal</small></div></div>
+      </div>
+      <div id="mi-3-0">
+        <div class="ing-row"><span class="ing-n">🍞 Pâine integrală</span><span class="ing-q">4 felii</span></div>
+        <div class="ing-row"><span class="ing-n">🥚 Ouă fierte</span><span class="ing-q">3 bucăți</span></div>
+        <div class="ing-row"><span class="ing-n">🧀 Cașcaval + șuncă pui</span><span class="ing-q">70g + 60g</span></div>
+        <div class="ing-row"><span class="ing-n">🍅 Roșii + castraveți + banană</span><span class="ing-q">după gust</span></div>
+      </div>
+      <div class="prep-wrap">
+        <div class="prep-label">👨‍🍳 Preparare</div>
+        <div class="prep-step"><div class="step-n">1</div><div>Ouă fierte <strong>10 min</strong>, decojite și tăiate jumătăți.</div></div>
+        <div class="prep-step"><div class="step-n">2</div><div>Sendviș: pâine + cașcaval + șuncă + roșii + castraveți.</div></div>
+        <div class="prep-step"><div class="step-n">3</div><div>Ouăle alături cu sare + piper. Banană ca desert. <em style="color:var(--blue)">⏱ ~15 min</em></div></div>
+      </div>
+      <div class="meal-actions">
+        <button class="btn-eaten" id="eat-3-0" onclick="toggleEaten(3,0)">✓ Am mâncat</button>
+        <button class="btn-reroll" onclick="openReroll(3,0,'11:00')">🔀 Alt preparat</button>
+      </div>
+    </div>
+    <div class="meal-card" id="mc-3-1">
+      <div class="meal-head">
+        <div class="meal-head-left"><div class="meal-time">🕖 Ora 19:00</div><div class="meal-name" id="mn-3-1">Ciorbă de pui cu legume</div></div>
+        <div class="meal-head-right"><div class="meal-kcal" id="mk-3-1">920<small>kcal</small></div></div>
+      </div>
+      <div id="mi-3-1">
+        <div class="ing-row"><span class="ing-n">🍗 Pulpe pui dezosate</span><span class="ing-q">300g</span></div>
+        <div class="ing-row"><span class="ing-n">🥕 Morcov + păstârnac + țelină</span><span class="ing-q">câte 1 buc</span></div>
+        <div class="ing-row"><span class="ing-n">🧅 Ceapă + ardei + roșii</span><span class="ing-q">câte 1 buc</span></div>
+        <div class="ing-row"><span class="ing-n">🍋 Zeamă lămâie + pâine</span><span class="ing-q">după gust + 2 felii</span></div>
+      </div>
+      <div class="prep-wrap">
+        <div class="prep-label">👨‍🍳 Preparare</div>
+        <div class="prep-step"><div class="step-n">1</div><div>2L apă cu pui + legume. Foc mediu <strong>30 min</strong>.</div></div>
+        <div class="prep-step"><div class="step-n">2</div><div>Scoate pui, dezosează. Adaugă ardei + roșii, fierbe <strong>10 min</strong>.</div></div>
+        <div class="prep-step"><div class="step-n">3</div><div>Pune carnea înapoi, zeamă lămâie + sare + pătrunjel. <em style="color:var(--blue)">⏱ ~50 min</em></div></div>
+      </div>
+      <div class="meal-actions">
+        <button class="btn-eaten" id="eat-3-1" onclick="toggleEaten(3,1)">✓ Am mâncat</button>
+        <button class="btn-reroll" onclick="openReroll(3,1,'19:00')">🔀 Alt preparat</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- VINERI -->
+  <div class="day-page" id="mese-4">
+    <div class="meal-card" id="mc-4-0">
+      <div class="meal-head">
+        <div class="meal-head-left"><div class="meal-time">🕚 Ora 11:00</div><div class="meal-name" id="mn-4-0">Ouă fierte cu cartofi</div></div>
+        <div class="meal-head-right"><div class="meal-kcal" id="mk-4-0">940<small>kcal</small></div></div>
+      </div>
+      <div id="mi-4-0">
+        <div class="ing-row"><span class="ing-n">🥚 Ouă fierte tari</span><span class="ing-q">4 bucăți</span></div>
+        <div class="ing-row"><span class="ing-n">🥔 Cartofi fierți</span><span class="ing-q">300g</span></div>
+        <div class="ing-row"><span class="ing-n">🧀 Cașcaval slab</span><span class="ing-q">50g</span></div>
+        <div class="ing-row"><span class="ing-n">🥗 Salată roșii + castraveți</span><span class="ing-q">liberă</span></div>
+      </div>
+      <div class="prep-wrap">
+        <div class="prep-label">👨‍🍳 Preparare</div>
+        <div class="prep-step"><div class="step-n">1</div><div>Fierbe simultan: cartofi <strong>15 min</strong> + ouă <strong>10 min</strong>.</div></div>
+        <div class="prep-step"><div class="step-n">2</div><div>Dressing: ulei + oțet + sare. Aranjează în farfurie. <em style="color:var(--blue)">⏱ ~20 min</em></div></div>
+      </div>
+      <div class="meal-actions">
+        <button class="btn-eaten" id="eat-4-0" onclick="toggleEaten(4,0)">✓ Am mâncat</button>
+        <button class="btn-reroll" onclick="openReroll(4,0,'11:00')">🔀 Alt preparat</button>
+      </div>
+    </div>
+    <div class="meal-card" id="mc-4-1">
+      <div class="meal-head">
+        <div class="meal-head-left"><div class="meal-time">🕖 Ora 19:00</div><div class="meal-name" id="mn-4-1">Chiftele la cuptor</div></div>
+        <div class="meal-head-right"><div class="meal-kcal" id="mk-4-1">930<small>kcal</small></div></div>
+      </div>
+      <div id="mi-4-1">
+        <div class="ing-row"><span class="ing-n">🥩 Carne tocată vită+porc</span><span class="ing-q">300g</span></div>
+        <div class="ing-row"><span class="ing-n">🥚 Ou + ceapă + usturoi + pătrunjel</span><span class="ing-q">1 ou + după gust</span></div>
+        <div class="ing-row"><span class="ing-n">🥔 Cartofi fierți garnitură</span><span class="ing-q">250g</span></div>
+      </div>
+      <div class="prep-wrap">
+        <div class="prep-label">👨‍🍳 Preparare</div>
+        <div class="prep-step"><div class="step-n">1</div><div>Cuptor 200°C. Amestecă carne + ou + ceapă rasă + usturoi + pătrunjel + sare + piper.</div></div>
+        <div class="prep-step"><div class="step-n">2</div><div>Formează chiftele pe hârtie copt. <strong>20–25 min</strong> la 200°C.</div></div>
+        <div class="prep-step"><div class="step-n">3</div><div>Fierbe cartofii între timp. <em style="color:var(--blue)">⏱ ~35 min</em></div></div>
+      </div>
+      <div class="meal-actions">
+        <button class="btn-eaten" id="eat-4-1" onclick="toggleEaten(4,1)">✓ Am mâncat</button>
+        <button class="btn-reroll" onclick="openReroll(4,1,'19:00')">🔀 Alt preparat</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- SAMBATA -->
+  <div class="day-page" id="mese-5">
+    <div class="meal-card" id="mc-5-0">
+      <div class="meal-head">
+        <div class="meal-head-left"><div class="meal-time">🕚 Ora 11:00</div><div class="meal-name" id="mn-5-0">Mic dejun mare de weekend</div></div>
+        <div class="meal-head-right"><div class="meal-kcal" id="mk-5-0">980<small>kcal</small></div></div>
+      </div>
+      <div id="mi-5-0">
+        <div class="ing-row"><span class="ing-n">🥚 Ouă ochiuri sau jumări</span><span class="ing-q">4 bucăți</span></div>
+        <div class="ing-row"><span class="ing-n">🥩 Șuncă pui</span><span class="ing-q">80g</span></div>
+        <div class="ing-row"><span class="ing-n">🍞 Pâine integrală + cașcaval</span><span class="ing-q">3 felii + 60g</span></div>
+        <div class="ing-row"><span class="ing-n">🍅 Roșii + castraveți + ardei</span><span class="ing-q">după gust</span></div>
+      </div>
+      <div class="prep-wrap">
+        <div class="prep-label">👨‍🍳 Preparare</div>
+        <div class="prep-step"><div class="step-n">1</div><div>Tigaie foc mic, șuncă 1 min/parte, ouăle cu capac pentru gălbenuș moale.</div></div>
+        <div class="prep-step"><div class="step-n">2</div><div>Aranjează frumos — sâmbăta ai timp! <em style="color:var(--blue)">⏱ ~15 min</em></div></div>
+      </div>
+      <div class="meal-actions">
+        <button class="btn-eaten" id="eat-5-0" onclick="toggleEaten(5,0)">✓ Am mâncat</button>
+        <button class="btn-reroll" onclick="openReroll(5,0,'11:00')">🔀 Alt preparat</button>
+      </div>
+    </div>
+    <div class="meal-card" id="mc-5-1">
+      <div class="meal-head">
+        <div class="meal-head-left"><div class="meal-time">🕖 Ora 19:00</div><div class="meal-name" id="mn-5-1">Grătar pui + cartofi cuptor</div></div>
+        <div class="meal-head-right"><div class="meal-kcal" id="mk-5-1">920<small>kcal</small></div></div>
+      </div>
+      <div id="mi-5-1">
+        <div class="ing-row"><span class="ing-n">🍗 Pulpe pui fără piele</span><span class="ing-q">350g</span></div>
+        <div class="ing-row"><span class="ing-n">🥔 Cartofi la cuptor cu coajă</span><span class="ing-q">250g</span></div>
+        <div class="ing-row"><span class="ing-n">🫑 Ardei copți + mujdei usturoi</span><span class="ing-q">2 buc + după gust</span></div>
+      </div>
+      <div class="prep-wrap">
+        <div class="prep-label">👨‍🍳 Preparare</div>
+        <div class="prep-step"><div class="step-n">1</div><div>Cartofi cu coajă + ulei + sare + boia la cuptor <strong>200°C, 40 min</strong>.</div></div>
+        <div class="prep-step"><div class="step-n">2</div><div>Pui marinat: sare+boia+usturoi+lămâie. Tigaie grill <strong>7–8 min/parte</strong>.</div></div>
+        <div class="prep-step"><div class="step-n">3</div><div>Ardei pe flacără 5 min. Mujdei: usturoi+sare+apă+ulei. <em style="color:var(--blue)">⏱ ~45 min</em></div></div>
+      </div>
+      <div class="meal-actions">
+        <button class="btn-eaten" id="eat-5-1" onclick="toggleEaten(5,1)">✓ Am mâncat</button>
+        <button class="btn-reroll" onclick="openReroll(5,1,'19:00')">🔀 Alt preparat</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- DUMINICA -->
+  <div class="day-page" id="mese-6">
+    <div class="meal-card" id="mc-6-0">
+      <div class="meal-head">
+        <div class="meal-head-left"><div class="meal-time">🕚 Ora 11:00</div><div class="meal-name" id="mn-6-0">Ouă + pâine + cașcaval</div></div>
+        <div class="meal-head-right"><div class="meal-kcal" id="mk-6-0">900<small>kcal</small></div></div>
+      </div>
+      <div id="mi-6-0">
+        <div class="ing-row"><span class="ing-n">🥚 Ouă fierte sau ochiuri</span><span class="ing-q">4 bucăți</span></div>
+        <div class="ing-row"><span class="ing-n">🍞 Pâine integrală</span><span class="ing-q">3 felii</span></div>
+        <div class="ing-row"><span class="ing-n">🧀 Cașcaval slab</span><span class="ing-q">60g</span></div>
+        <div class="ing-row"><span class="ing-n">🍌 Banană + roșii</span><span class="ing-q">după gust</span></div>
+      </div>
+      <div class="prep-wrap">
+        <div class="prep-label">👨‍🍳 Preparare</div>
+        <div class="prep-step"><div class="step-n">1</div><div>Masă simplă. Fierbe 10 ouă deodată pentru toată săptămâna viitoare.</div></div>
+        <div class="prep-step"><div class="step-n">2</div><div>Aranjează cu legume și cașcaval. <em style="color:var(--blue)">⏱ ~15 min</em></div></div>
+      </div>
+      <div class="meal-actions">
+        <button class="btn-eaten" id="eat-6-0" onclick="toggleEaten(6,0)">✓ Am mâncat</button>
+        <button class="btn-reroll" onclick="openReroll(6,0,'11:00')">🔀 Alt preparat</button>
+      </div>
+    </div>
+    <div class="meal-card" id="mc-6-1">
+      <div class="meal-head">
+        <div class="meal-head-left"><div class="meal-time">🕖 Ora 19:00</div><div class="meal-name" id="mn-6-1">Friptură pui la tavă</div></div>
+        <div class="meal-head-right"><div class="meal-kcal" id="mk-6-1">960<small>kcal</small></div></div>
+      </div>
+      <div id="mi-6-1">
+        <div class="ing-row"><span class="ing-n">🍗 Piept pui întreg</span><span class="ing-q">300g</span></div>
+        <div class="ing-row"><span class="ing-n">🥔 Cartofi cuburi la tavă</span><span class="ing-q">300g</span></div>
+        <div class="ing-row"><span class="ing-n">🧅 Ceapă + roșii + ardei în tavă</span><span class="ing-q">câte 1 buc</span></div>
+        <div class="ing-row"><span class="ing-n">🧄 Usturoi + boia + cimbru + ulei</span><span class="ing-q">după gust</span></div>
+      </div>
+      <div class="prep-wrap">
+        <div class="prep-label">👨‍🍳 Preparare</div>
+        <div class="prep-step"><div class="step-n">1</div><div>Cuptor 200°C. Legumele în tavă cu ulei+sare+boia. Puiul deasupra cu usturoi+cimbru.</div></div>
+        <div class="prep-step"><div class="step-n">2</div><div>Folie <strong>25 min</strong>, fără folie <strong>15 min</strong>. Fă dublu pentru luni. <em style="color:var(--blue)">⏱ ~45 min</em></div></div>
+      </div>
+      <div class="meal-actions">
+        <button class="btn-eaten" id="eat-6-1" onclick="toggleEaten(6,1)">✓ Am mâncat</button>
+        <button class="btn-reroll" onclick="openReroll(6,1,'19:00')">🔀 Alt preparat</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════ SCREEN: ANTRENAMENT ══════ -->
+<div id="screen-antrenament" class="screen">
+  <div class="hero">
+    <div class="hero-tag">5 zile/săptămână · Acasă</div>
+    <div class="hero-title">ANTREN<span>AMENT</span></div>
+    <div class="hero-sub">Forță + HIIT · Fără echipament · ~40 min</div>
+  </div>
+  <div class="day-tabs" id="wkTabs">
+    <button class="day-tab active" onclick="showWkDay(0,this)"><span class="dn">L</span><span class="dl">Luni</span></button>
+    <button class="day-tab" onclick="showWkDay(1,this)"><span class="dn">M</span><span class="dl">Marți</span></button>
+    <button class="day-tab" onclick="showWkDay(2,this)"><span class="dn">M</span><span class="dl">Miercuri</span></button>
+    <button class="day-tab" onclick="showWkDay(3,this)"><span class="dn">J</span><span class="dl">Joi</span></button>
+    <button class="day-tab" onclick="showWkDay(4,this)"><span class="dn">V</span><span class="dl">Vineri</span></button>
+    <button class="day-tab" onclick="showWkDay(5,this)"><span class="dn">S</span><span class="dl">Sâmbătă</span></button>
+    <button class="day-tab" onclick="showWkDay(6,this)"><span class="dn">D</span><span class="dl">Duminică</span></button>
+  </div>
+  <div class="day-page active" id="wk-0">
+    <div style="padding:0 16px 12px"><div class="workout-header" style="border-radius:14px 14px 0 0"><div><div class="wk-type">💪 FORȚĂ SUPERIOR</div><div style="font-size:12px;color:var(--text2);margin-top:2px">Luni · ~40 min</div></div><div class="wk-badge badge-force">FORȚĂ</div></div></div>
+    <div class="ex-card" style="margin:0 16px 12px">
+      <div class="ex-row"><div><div class="ex-name">Push-up standard</div><div class="ex-detail">Pauză 60s între serii</div></div><div class="ex-sets">4×15<small>serii×rep</small></div></div>
+      <div class="ex-row"><div><div class="ex-name">Push-up larg (piept)</div><div class="ex-detail">Mâini mai late cu 20cm</div></div><div class="ex-sets">3×12<small>serii×rep</small></div></div>
+      <div class="ex-row"><div><div class="ex-name">Pike Push-up (umeri)</div><div class="ex-detail">Șolduri sus, cap spre podea</div></div><div class="ex-sets">3×10<small>serii×rep</small></div></div>
+      <div class="ex-row"><div><div class="ex-name">Dips pe scaun</div><div class="ex-detail">Triceps · coatele înapoi</div></div><div class="ex-sets">3×12<small>serii×rep</small></div></div>
+      <div class="ex-row"><div><div class="ex-name">Plank</div><div class="ex-detail">Abdomen contractat</div></div><div class="ex-sets">3×45s<small>serii×timp</small></div></div>
+      <div class="ex-row"><div><div class="ex-name">Superman</div><div class="ex-detail">Ridică brațe+picioare simultan</div></div><div class="ex-sets">3×15<small>serii×rep</small></div></div>
+    </div>
+    <div class="note-box">💡 Antrenează-te între <strong>16:00–18:30</strong> înainte de masa de seară.</div>
+  </div>
+  <div class="day-page" id="wk-1">
+    <div style="padding:0 16px 12px"><div class="workout-header" style="border-radius:14px 14px 0 0"><div><div class="wk-type">🦵 FORȚĂ INFERIOR</div><div style="font-size:12px;color:var(--text2);margin-top:2px">Marți · ~40 min</div></div><div class="wk-badge badge-force">FORȚĂ</div></div></div>
+    <div class="ex-card" style="margin:0 16px 12px">
+      <div class="ex-row"><div><div class="ex-name">Squat</div><div class="ex-detail">Genunchii nu depășesc vârful</div></div><div class="ex-sets">4×20<small>serii×rep</small></div></div>
+      <div class="ex-row"><div><div class="ex-name">Fandări alternative</div><div class="ex-detail">Spate drept, genunchi 90°</div></div><div class="ex-sets">3×12<small>per picior</small></div></div>
+      <div class="ex-row"><div><div class="ex-name">Glute Bridge</div><div class="ex-detail">Menține 2s sus</div></div><div class="ex-sets">4×20<small>serii×rep</small></div></div>
+      <div class="ex-row"><div><div class="ex-name">Step-up pe scaun</div><div class="ex-detail">Alternativ, coboară controlat</div></div><div class="ex-sets">3×15<small>per picior</small></div></div>
+      <div class="ex-row"><div><div class="ex-name">Mountain Climbers</div><div class="ex-detail">Ritm rapid, șolduri jos</div></div><div class="ex-sets">3×30s<small>serii×timp</small></div></div>
+      <div class="ex-row"><div><div class="ex-name">Calf Raises</div><div class="ex-detail">Mișcare completă</div></div><div class="ex-sets">3×25<small>serii×rep</small></div></div>
+    </div>
+  </div>
+  <div class="day-page" id="wk-2">
+    <div style="padding:0 16px 12px"><div class="workout-header" style="border-radius:14px 14px 0 0"><div><div class="wk-type">🔥 HIIT CARDIO</div><div style="font-size:12px;color:var(--text2);margin-top:2px">Miercuri · 30 min</div></div><div class="wk-badge badge-hiit">HIIT</div></div></div>
+    <div class="ex-card" style="margin:0 16px 12px">
+      <div class="ex-row"><div><div class="ex-name">Jumping Jacks — Încălzire</div></div><div class="ex-sets">3 min<small>continuu</small></div></div>
+      <div class="ex-row"><div><div class="ex-name">Burpees</div><div class="ex-detail">40s lucru → 20s pauză</div></div><div class="ex-sets">5×<small>runde</small></div></div>
+      <div class="ex-row"><div><div class="ex-name">High Knees</div><div class="ex-detail">40s lucru → 20s pauză</div></div><div class="ex-sets">5×<small>runde</small></div></div>
+      <div class="ex-row"><div><div class="ex-name">Jump Squat</div><div class="ex-detail">40s lucru → 60s pauză între runde</div></div><div class="ex-sets">5×<small>runde</small></div></div>
+      <div class="ex-row"><div><div class="ex-name">Stretching — Răcire</div></div><div class="ex-sets">5 min<small>static</small></div></div>
+    </div>
+    <div class="note-box">🔥 Folosește <strong>timerul de mai jos</strong> pentru intervalele HIIT!</div>
+  </div>
+  <div class="day-page" id="wk-3">
+    <div style="padding:0 16px 12px"><div class="workout-header" style="border-radius:14px 14px 0 0"><div><div class="wk-type">💪 FORȚĂ SUPERIOR</div><div style="font-size:12px;color:var(--text2);margin-top:2px">Joi · +2 rep față de luni</div></div><div class="wk-badge badge-force">FORȚĂ</div></div></div>
+    <div class="ex-card" style="margin:0 16px 12px">
+      <div class="ex-row"><div><div class="ex-name">Push-up standard</div></div><div class="ex-sets">4×17<small>serii×rep</small></div></div>
+      <div class="ex-row"><div><div class="ex-name">Push-up larg</div></div><div class="ex-sets">3×14<small>serii×rep</small></div></div>
+      <div class="ex-row"><div><div class="ex-name">Pike Push-up</div></div><div class="ex-sets">3×12<small>serii×rep</small></div></div>
+      <div class="ex-row"><div><div class="ex-name">Dips pe scaun</div></div><div class="ex-sets">3×14<small>serii×rep</small></div></div>
+      <div class="ex-row"><div><div class="ex-name">Plank</div></div><div class="ex-sets">3×50s<small>serii×timp</small></div></div>
+      <div class="ex-row"><div><div class="ex-name">Superman</div></div><div class="ex-sets">3×18<small>serii×rep</small></div></div>
+    </div>
+  </div>
+  <div class="day-page" id="wk-4">
+    <div style="padding:0 16px 12px"><div class="workout-header" style="border-radius:14px 14px 0 0"><div><div class="wk-type">🦵 FORȚĂ INFERIOR</div><div style="font-size:12px;color:var(--text2);margin-top:2px">Vineri · +2 rep față de marți</div></div><div class="wk-badge badge-force">FORȚĂ</div></div></div>
+    <div class="ex-card" style="margin:0 16px 12px">
+      <div class="ex-row"><div><div class="ex-name">Squat</div></div><div class="ex-sets">4×22<small>serii×rep</small></div></div>
+      <div class="ex-row"><div><div class="ex-name">Fandări alternative</div></div><div class="ex-sets">3×14<small>per picior</small></div></div>
+      <div class="ex-row"><div><div class="ex-name">Glute Bridge</div></div><div class="ex-sets">4×22<small>serii×rep</small></div></div>
+      <div class="ex-row"><div><div class="ex-name">Step-up pe scaun</div></div><div class="ex-sets">3×18<small>per picior</small></div></div>
+      <div class="ex-row"><div><div class="ex-name">Mountain Climbers</div></div><div class="ex-sets">3×40s<small>serii×timp</small></div></div>
+      <div class="ex-row"><div><div class="ex-name">Calf Raises</div></div><div class="ex-sets">3×28<small>serii×rep</small></div></div>
+    </div>
+  </div>
+  <div class="day-page" id="wk-5"><div class="rest-day"><div class="big">REST</div><p>Sâmbătă = Odihnă activă 🐕<br><br>Plimbare 30–45 min cu câinele.<br><br><strong style="color:var(--accent)">Hidratare: 3L apă azi.</strong></p></div></div>
+  <div class="day-page" id="wk-6"><div class="rest-day"><div class="big">REST</div><p>Duminică = Odihnă completă + Meal prep 🍳<br><br>Friptură dublă + 10 ouă fierte pentru săptămâna viitoare.<br><br><strong style="color:var(--accent)">Mâine reîncepi fresh! 💪</strong></p></div></div>
+
+  <div class="timer-wrap">
+    <div class="timer-label">⏱ TIMER ANTRENAMENT</div>
+    <div class="timer-display" id="timerDisplay">00:00</div>
+    <div class="timer-btns">
+      <button class="timer-btn start" id="timerStartBtn" onclick="timerStart()">START</button>
+      <button class="timer-btn reset" onclick="timerReset()">RESET</button>
+    </div>
+    <div class="timer-presets">
+      <button class="preset-btn" onclick="timerSet(40)">40s lucru</button>
+      <button class="preset-btn" onclick="timerSet(20)">20s pauză</button>
+      <button class="preset-btn" onclick="timerSet(60)">60s pauză</button>
+      <button class="preset-btn" onclick="timerSet(45)">45s plank</button>
+      <button class="preset-btn" onclick="timerSet(30)">30s MC</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══════ SCREEN: CUMPĂRĂTURI ══════ -->
+<div id="screen-cumparaturi" class="screen">
+  <div class="hero">
+    <div class="hero-tag">Săptămâna 1 · 2 persoane</div>
+    <div class="hero-title">LISTĂ <span>CUMPĂ</span>RĂTURI</div>
+    <div class="hero-sub">Bifează produsele la magazin</div>
+  </div>
+  <div class="shop-progress-bar">
+    <div class="sp-bar"><div class="sp-fill" id="spFill" style="width:0%"></div></div>
+    <div class="sp-text" id="spText">0/0</div>
+    <button class="sp-reset" onclick="shopReset()">↺ Reset</button>
+  </div>
+  <div class="shop-filters">
+    <button class="sf-btn active" onclick="shopFilter('all',this)">Toate</button>
+    <button class="sf-btn" onclick="shopFilter('carne',this)">🥩 Carne</button>
+    <button class="sf-btn" onclick="shopFilter('lactate',this)">🧀 Lactate</button>
+    <button class="sf-btn" onclick="shopFilter('legume',this)">🥦 Legume</button>
+    <button class="sf-btn" onclick="shopFilter('fructe',this)">🍌 Fructe</button>
+    <button class="sf-btn" onclick="shopFilter('uscate',this)">🌾 Uscate</button>
+    <button class="sf-btn" onclick="shopFilter('condimente',this)">🧄 Condimente</button>
+  </div>
+  <div class="shop-cat" data-cat="carne">
+    <div class="shop-cat-head"><span class="shop-cat-icon">🥩</span><span class="shop-cat-name">Carne & Mezeluri</span><span class="shop-cat-cnt" id="cnt-carne"></span></div>
+    <div class="shop-item" onclick="shopToggle(this)"><div class="si-cb"></div><div class="si-info"><div class="si-name">Piept de pui</div><div class="si-note">Luni cină + Duminică + meal prep</div></div><div class="si-qty">1.8kg</div></div>
+    <div class="shop-item" onclick="shopToggle(this)"><div class="si-cb"></div><div class="si-info"><div class="si-name">Pulpe pui dezosate</div><div class="si-note">Joi ciorbă + Sâmbătă grătar</div></div><div class="si-qty">1.4kg</div></div>
+    <div class="shop-item" onclick="shopToggle(this)"><div class="si-cb"></div><div class="si-info"><div class="si-name">Carne vită pulpă</div><div class="si-note">Marți tocăniță — fă dublă</div></div><div class="si-qty">800g</div></div>
+    <div class="shop-item" onclick="shopToggle(this)"><div class="si-cb"></div><div class="si-info"><div class="si-name">Carne tocată vită+porc</div><div class="si-note">Vineri chiftele la cuptor</div></div><div class="si-qty">600g×2</div></div>
+    <div class="shop-item" onclick="shopToggle(this)"><div class="si-cb"></div><div class="si-info"><div class="si-name">Mușchi de porc</div><div class="si-note">Miercuri cu paste</div></div><div class="si-qty">880g</div></div>
+    <div class="shop-item" onclick="shopToggle(this)"><div class="si-cb"></div><div class="si-info"><div class="si-name">Șuncă pui/curcan felii</div><div class="si-note">Luni, Joi, Sâmbătă</div></div><div class="si-qty">400g</div></div>
+  </div>
+  <div class="shop-cat" data-cat="lactate">
+    <div class="shop-cat-head"><span class="shop-cat-icon">🧀</span><span class="shop-cat-name">Lactate & Ouă</span><span class="shop-cat-cnt" id="cnt-lactate"></span></div>
+    <div class="shop-item" onclick="shopToggle(this)"><div class="si-cb"></div><div class="si-info"><div class="si-name">Ouă</div><div class="si-note">Zilnic — cel mai important</div></div><div class="si-qty">40buc</div></div>
+    <div class="shop-item" onclick="shopToggle(this)"><div class="si-cb"></div><div class="si-info"><div class="si-name">Cașcaval slab (max 45%)</div><div class="si-note">Înlocuiește iaurt + brânză vaci</div></div><div class="si-qty">700g</div></div>
+    <div class="shop-item" onclick="shopToggle(this)"><div class="si-cb"></div><div class="si-info"><div class="si-name">Lapte 1.5%</div><div class="si-note">Marți ovăz + cafea</div></div><div class="si-qty">1L</div></div>
+    <div class="shop-item" onclick="shopToggle(this)"><div class="si-cb"></div><div class="si-info"><div class="si-name">Telemea de vacă</div><div class="si-note">Luni cină opțional</div></div><div class="si-qty">150g</div></div>
+  </div>
+  <div class="shop-cat" data-cat="legume">
+    <div class="shop-cat-head"><span class="shop-cat-icon">🥦</span><span class="shop-cat-name">Legume</span><span class="shop-cat-cnt" id="cnt-legume"></span></div>
+    <div class="shop-item" onclick="shopToggle(this)"><div class="si-cb"></div><div class="si-info"><div class="si-name">Cartofi</div><div class="si-note">Folosiți zilnic</div></div><div class="si-qty">5kg</div></div>
+    <div class="shop-item" onclick="shopToggle(this)"><div class="si-cb"></div><div class="si-info"><div class="si-name">Roșii</div><div class="si-note">Salate zilnice + gătit</div></div><div class="si-qty">1.5kg</div></div>
+    <div class="shop-item" onclick="shopToggle(this)"><div class="si-cb"></div><div class="si-info"><div class="si-name">Castraveți</div><div class="si-note">Salate zilnice</div></div><div class="si-qty">6buc</div></div>
+    <div class="shop-item" onclick="shopToggle(this)"><div class="si-cb"></div><div class="si-info"><div class="si-name">Ardei roșu + verde</div><div class="si-note">Omletă, tocăniță, ciorbă, grătar</div></div><div class="si-qty">8buc</div></div>
+    <div class="shop-item" onclick="shopToggle(this)"><div class="si-cb"></div><div class="si-info"><div class="si-name">Ceapă</div><div class="si-note">Zilnic la gătit</div></div><div class="si-qty">1kg</div></div>
+    <div class="shop-item" onclick="shopToggle(this)"><div class="si-cb"></div><div class="si-info"><div class="si-name">Morcovi</div><div class="si-note">Miercuri + Joi ciorbă</div></div><div class="si-qty">1kg</div></div>
+    <div class="shop-item" onclick="shopToggle(this)"><div class="si-cb"></div><div class="si-info"><div class="si-name">Roșii tocate / bulion</div><div class="si-note">Marți tocăniță</div></div><div class="si-qty">2conserve</div></div>
+    <div class="shop-item" onclick="shopToggle(this)"><div class="si-cb"></div><div class="si-info"><div class="si-name">Păstârnac + țelină</div><div class="si-note">Joi ciorbă</div></div><div class="si-qty">câte 1</div></div>
+    <div class="shop-item" onclick="shopToggle(this)"><div class="si-cb"></div><div class="si-info"><div class="si-name">Ceapă verde</div><div class="si-note">Vineri salată</div></div><div class="si-qty">1leg</div></div>
+  </div>
+  <div class="shop-cat" data-cat="fructe">
+    <div class="shop-cat-head"><span class="shop-cat-icon">🍌</span><span class="shop-cat-name">Fructe</span><span class="shop-cat-cnt" id="cnt-fructe"></span></div>
+    <div class="shop-item" onclick="shopToggle(this)"><div class="si-cb"></div><div class="si-info"><div class="si-name">Banane</div><div class="si-note">Marți, Miercuri, Joi, Duminică</div></div><div class="si-qty">12buc</div></div>
+    <div class="shop-item" onclick="shopToggle(this)"><div class="si-cb"></div><div class="si-info"><div class="si-name">Lămâi</div><div class="si-note">Dressinguri + ciorbă</div></div><div class="si-qty">4buc</div></div>
+  </div>
+  <div class="shop-cat" data-cat="uscate">
+    <div class="shop-cat-head"><span class="shop-cat-icon">🌾</span><span class="shop-cat-name">Uscate & Pâine</span><span class="shop-cat-cnt" id="cnt-uscate"></span></div>
+    <div class="shop-item" onclick="shopToggle(this)"><div class="si-cb"></div><div class="si-info"><div class="si-name">Pâine integrală</div><div class="si-note">Cumpără de 2× săptămânal</div></div><div class="si-qty">4franzele</div></div>
+    <div class="shop-item" onclick="shopToggle(this)"><div class="si-cb"></div><div class="si-info"><div class="si-name">Fulgi de ovăz</div><div class="si-note">Marți masă 1</div></div><div class="si-qty">400g</div></div>
+    <div class="shop-item" onclick="shopToggle(this)"><div class="si-cb"></div><div class="si-info"><div class="si-name">Orez alb sau brun</div><div class="si-note">Luni + alte zile</div></div><div class="si-qty">500g</div></div>
+    <div class="shop-item" onclick="shopToggle(this)"><div class="si-cb"></div><div class="si-info"><div class="si-name">Paste integrale</div><div class="si-note">Miercuri cu mușchi porc</div></div><div class="si-qty">400g</div></div>
+    <div class="shop-item" onclick="shopToggle(this)"><div class="si-cb"></div><div class="si-info"><div class="si-name">Miere</div><div class="si-note">Marți în ovăz</div></div><div class="si-qty">1borcan</div></div>
+  </div>
+  <div class="shop-cat" data-cat="condimente">
+    <div class="shop-cat-head"><span class="shop-cat-icon">🧄</span><span class="shop-cat-name">Condimente & Altele</span><span class="shop-cat-cnt" id="cnt-condimente"></span></div>
+    <div class="shop-item" onclick="shopToggle(this)"><div class="si-cb"></div><div class="si-info"><div class="si-name">Usturoi</div><div class="si-note">Zilnic la gătit</div></div><div class="si-qty">2capete</div></div>
+    <div class="shop-item" onclick="shopToggle(this)"><div class="si-cb"></div><div class="si-info"><div class="si-name">Ulei floarea soarelui</div><div class="si-note">Gătit zilnic</div></div><div class="si-qty">1L</div></div>
+    <div class="shop-item" onclick="shopToggle(this)"><div class="si-cb"></div><div class="si-info"><div class="si-name">Boia dulce</div><div class="si-note">Pui, porc, chiftele</div></div><div class="si-qty">1pungă</div></div>
+    <div class="shop-item" onclick="shopToggle(this)"><div class="si-cb"></div><div class="si-info"><div class="si-name">Cimbru + rozmarin</div><div class="si-note">Porc, pui la cuptor</div></div><div class="si-qty">câte 1</div></div>
+    <div class="shop-item" onclick="shopToggle(this)"><div class="si-cb"></div><div class="si-info"><div class="si-name">Sare + Piper</div><div class="si-note">Verifică dacă ai acasă</div></div><div class="si-qty">—</div></div>
+    <div class="shop-item" onclick="shopToggle(this)"><div class="si-cb"></div><div class="si-info"><div class="si-name">Oțet</div><div class="si-note">Dressing salate</div></div><div class="si-qty">1sticlă</div></div>
+    <div class="shop-item" onclick="shopToggle(this)"><div class="si-cb"></div><div class="si-info"><div class="si-name">Pătrunjel proaspăt</div><div class="si-note">Chiftele + ciorbă</div></div><div class="si-qty">2leg</div></div>
+  </div>
+  <div style="height:20px"></div>
+</div>
+
+<!-- NAV -->
+<nav class="nav">
+  <button class="nav-btn active" onclick="showScreen('azi',this)"><span class="nav-icon">🏠</span><span class="nav-label">Azi</span></button>
+  <button class="nav-btn" onclick="showScreen('mese',this)"><span class="nav-icon">🍽</span><span class="nav-label">Mese</span></button>
+  <button class="nav-btn" onclick="showScreen('antrenament',this)"><span class="nav-icon">💪</span><span class="nav-label">Antrenament</span></button>
+  <button class="nav-btn" onclick="showScreen('cumparaturi',this)"><span class="nav-icon">🛒</span><span class="nav-label">Cumpărături</span></button>
+</nav>
+
+<script>
+// ══════ RE-ROLL DATA ══════
+const REROLL_ALTERNATIVES = {
+  morning: [
+    { name:'Ouă fierte cu pâine și cașcaval', kcal:'880', desc:'4 ouă fierte tari + 3 felii pâine integrală + 60g cașcaval slab + roșii proaspete' },
+    { name:'Sendviș cu șuncă și ouă', kcal:'900', desc:'4 felii pâine integrală + 3 ouă fierte + 80g șuncă pui + castraveți + roșii' },
+    { name:'Ovăz cu banane și ouă', kcal:'920', desc:'100g fulgi ovăz cu lapte + 2 banane + 3 ouă fierte + 1 linguriță miere' },
+    { name:'Omletă simplă cu pâine', kcal:'860', desc:'4 ouă omletă cu ceapă și ardei + 3 felii pâine integrală + 50g cașcaval topit' },
+    { name:'Cartofi cu ouă și cașcaval', kcal:'950', desc:'250g cartofi fierți + 4 ouă jumări + 50g cașcaval ras topit deasupra' },
+    { name:'Pâine cu ouă fierte și legume', kcal:'870', desc:'4 felii pâine integrală + 4 ouă fierte + roșii + castraveți + 40g cașcaval' },
+  ],
+  evening: [
+    { name:'Pui la cuptor cu cartofi', kcal:'920', desc:'250g piept pui + 300g cartofi cuburi la tavă + ceapă + ardei + boia + usturoi' },
+    { name:'Ciorbă de pui cu pâine', kcal:'880', desc:'300g carne pui în ciorbă cu morcov, păstârnac, ardei + 2 felii pâine integrală' },
+    { name:'Chiftele la cuptor cu cartofi', kcal:'940', desc:'300g carne tocată vită+porc → chiftele la 200°C + 250g cartofi fierți + salată' },
+    { name:'Tocăniță de vită cu cartofi', kcal:'950', desc:'200g vită cuburi + 300g cartofi + roșii + ceapă + usturoi + cimbru' },
+    { name:'Mușchi de porc cu orez', kcal:'900', desc:'220g mușchi porc la cuptor + 200g orez fiert + morcovi fierți + boia + rozmarin' },
+    { name:'Grătar pui cu cartofi la cuptor', kcal:'910', desc:'350g pulpe pui fără piele la tigaie grill + 250g cartofi la cuptor + mujdei usturoi' },
+    { name:'Paste cu pui și legume', kcal:'930', desc:'200g piept pui + 180g paste integrale fierte + morcovi + boia + usturoi + ulei olive' },
+  ]
+};
+
+let currentReroll = { day: 0, meal: 0, time: '' };
+
+function openReroll(day, meal, time) {
+  currentReroll = { day, meal, time };
+  const isEvening = time === '19:00';
+  const opts = isEvening ? REROLL_ALTERNATIVES.evening : REROLL_ALTERNATIVES.morning;
+  document.getElementById('rerollSubtitle').textContent = `Masa de ${time} — alege o alternativă`;
+  const container = document.getElementById('rerollOptions');
+  container.innerHTML = opts.map((o, i) =>
+    `<div class="reroll-option" onclick="selectReroll(${i})">
+      <div class="reroll-opt-name">${o.name}</div>
+      <div class="reroll-opt-desc">${o.desc}</div>
+      <div class="reroll-opt-kcal">${o.kcal} kcal</div>
+    </div>`
+  ).join('');
+  document.getElementById('rerollOverlay').classList.add('open');
+}
+
+function selectReroll(idx) {
+  const { day, meal, time } = currentReroll;
+  const isEvening = time === '19:00';
+  const opts = isEvening ? REROLL_ALTERNATIVES.evening : REROLL_ALTERNATIVES.morning;
+  const chosen = opts[idx];
+
+  // Update name and kcal
+  document.getElementById(`mn-${day}-${meal}`).textContent = chosen.name;
+  document.getElementById(`mk-${day}-${meal}`).innerHTML = `${chosen.kcal}<small>kcal</small>`;
+
+  // Update ingredients
+  const ingContainer = document.getElementById(`mi-${day}-${meal}`);
+  const parts = chosen.desc.split('+').map(p => p.trim());
+  ingContainer.innerHTML = parts.map(p => `<div class="ing-row"><span class="ing-n">${p}</span><span class="ing-q"></span></div>`).join('');
+
+  // Save to memory
+  const saved = loadMemory();
+  if (!saved.rerolls) saved.rerolls = {};
+  saved.rerolls[`${day}-${meal}`] = { name: chosen.name, kcal: chosen.kcal, desc: chosen.desc };
+  saveMemory(saved);
+
+  closeReroll();
+  showToast(`✓ ${chosen.name} salvat!`);
+}
+
+function closeReroll(e) {
+  if (e && e.target !== document.getElementById('rerollOverlay')) return;
+  document.getElementById('rerollOverlay').classList.remove('open');
+}
+
+// ══════ MEMORY (IndexedDB + Cookie + localStorage triple backup) ══════
+const MEM_KEY = 'fp30_v2';
+let _memCache = null;
+
+// Cookie helpers (survive Safari ITP — 1 year expiry)
+function setCookie(val) {
+  try {
+    const exp = new Date(); exp.setFullYear(exp.getFullYear() + 1);
+    document.cookie = MEM_KEY + '=' + encodeURIComponent(val) + '; expires=' + exp.toUTCString() + '; path=/; SameSite=Lax';
+  } catch(e) {}
+}
+function getCookie() {
+  try {
+    const m = document.cookie.match(new RegExp('(?:^|; )' + MEM_KEY + '=([^;]*)'));
+    return m ? decodeURIComponent(m[1]) : null;
+  } catch(e) { return null; }
+}
+
+// IndexedDB helpers
+function idbSave(val) {
+  try {
+    const rq = indexedDB.open('fp30db', 1);
+    rq.onupgradeneeded = e => e.target.result.createObjectStore('kv');
+    rq.onsuccess = e => {
+      const tx = e.target.result.transaction('kv', 'readwrite');
+      tx.objectStore('kv').put(val, MEM_KEY);
+    };
+  } catch(e) {}
+}
+function idbLoad(cb) {
+  try {
+    const rq = indexedDB.open('fp30db', 1);
+    rq.onupgradeneeded = e => e.target.result.createObjectStore('kv');
+    rq.onsuccess = e => {
+      const tx = e.target.result.transaction('kv', 'readonly');
+      const gr = tx.objectStore('kv').get(MEM_KEY);
+      gr.onsuccess = () => cb(gr.result || null);
+      gr.onerror = () => cb(null);
+    };
+    rq.onerror = () => cb(null);
+  } catch(e) { cb(null); }
+}
+
+function loadMemory() {
+  if (_memCache) return _memCache;
+  // Try localStorage first (fastest)
+  try {
+    const ls = localStorage.getItem(MEM_KEY);
+    if (ls) { _memCache = JSON.parse(ls); return _memCache; }
+  } catch(e) {}
+  // Fallback to cookie
+  try {
+    const ck = getCookie();
+    if (ck) { _memCache = JSON.parse(ck); return _memCache; }
+  } catch(e) {}
+  _memCache = {};
+  return _memCache;
+}
+
+function saveMemory(data) {
+  _memCache = data;
+  const str = JSON.stringify(data);
+  // Save to all 3 places simultaneously
+  try { localStorage.setItem(MEM_KEY, str); } catch(e) {}
+  setCookie(str);
+  idbSave(str);
+}
+
+// On load, also try to restore from IndexedDB (async, handles Safari PWA case)
+idbLoad(val => {
+  if (!val) return;
+  try {
+    const idbData = JSON.parse(val);
+    // Use IDB data if it's newer/richer than what we have
+    const current = loadMemory();
+    const idbEaten = Object.keys(idbData.eaten || {}).length;
+    const curEaten = Object.keys(current.eaten || {}).length;
+    if (idbEaten > curEaten) {
+      _memCache = idbData;
+      try { localStorage.setItem(MEM_KEY, val); } catch(e) {}
+      setCookie(val);
+      // Re-apply state if already initialized
+      if (document.getElementById('eat-0-0')) {
+        restoreState();
+        shopLoad();
+        buildCalendar();
+      }
+    }
+  } catch(e) {}
+});
+
+// ══════ MEAL CHECK-IN ══════
+function toggleEaten(day, meal) {
+  const mem = loadMemory();
+  if (!mem.eaten) mem.eaten = {};
+  const key = `${day}-${meal}`;
+  mem.eaten[key] = !mem.eaten[key];
+  saveMemory(mem);
+  applyEatenState(day, meal, mem.eaten[key]);
+  checkDayComplete(day, mem);
+  updateTodayDots(mem);
+  if (mem.eaten[key]) showToast('✓ Masă bifată! 💪');
+}
+
+function applyEatenState(day, meal, eaten) {
+  const card = document.getElementById(`mc-${day}-${meal}`);
+  const btn = document.getElementById(`eat-${day}-${meal}`);
+  if (!card || !btn) return;
+  if (eaten) {
+    card.classList.add('eaten');
+    btn.classList.add('done');
+    btn.textContent = '✓ Mâncat!';
+  } else {
+    card.classList.remove('eaten');
+    btn.classList.remove('done');
+    btn.textContent = '✓ Am mâncat';
+  }
+}
+
+function checkDayComplete(day, mem) {
+  const both = mem.eaten && mem.eaten[`${day}-0`] && mem.eaten[`${day}-1`];
+  const tabs = document.querySelectorAll('#meseTabs .day-tab');
+  if (tabs[day]) tabs[day].classList.toggle('day-done', !!both);
+}
+
+function updateTodayDots(mem) {
+  const todayIdx = getTodayIndex();
+  const m1 = mem.eaten && mem.eaten[`${todayIdx}-0`];
+  const m2 = mem.eaten && mem.eaten[`${todayIdx}-1`];
+  const d1 = document.getElementById('todayMeal1Dot');
+  const d2 = document.getElementById('todayMeal2Dot');
+  const r1 = document.getElementById('todayMeal1Row');
+  const r2 = document.getElementById('todayMeal2Row');
+  if (d1) d1.className = 'today-dot' + (m1 ? ' done' : '');
+  if (d2) d2.className = 'today-dot blue' + (m2 ? ' done' : '');
+  if (r1) r1.classList.toggle('done-row', !!m1);
+  if (r2) r2.classList.toggle('done-row', !!m2);
+}
+
+// ══════ CALENDAR ══════
+function getTodayIndex() {
+  const d = new Date().getDay();
+  return d === 0 ? 6 : d - 1;
+}
+
+function buildCalendar() {
+  const mem = loadMemory();
+  const dayNames = ['L','M','M','J','V','S','D'];
+  const today = getTodayIndex();
+  const cal = document.getElementById('weekCalendar');
+  cal.innerHTML = dayNames.map((n, i) => {
+    const m1 = mem.eaten && mem.eaten[`${i}-0`];
+    const m2 = mem.eaten && mem.eaten[`${i}-1`];
+    const complete = m1 && m2;
+    const isToday = i === today;
+    let dots = '';
+    if (m1) dots += '<div class="wcd-dot"></div>';
+    if (m2) dots += '<div class="wcd-dot"></div>';
+    return `<div class="wc-day ${isToday?'today':''} ${complete?'day-complete':''}" onclick="showScreen('mese',document.querySelectorAll('.nav-btn')[1]);showMeseDay(${i},document.querySelectorAll('#meseTabs .day-tab')[${i}])">
+      <div class="wcd-name">${n}</div>
+      <div class="wcd-num">${i+1}</div>
+      <div class="wcd-dots">${dots}</div>
+    </div>`;
+  }).join('');
+}
+
+// ══════ RESTORE ALL STATE ══════
+function restoreState() {
+  const mem = loadMemory();
+
+  // Restore eaten
+  if (mem.eaten) {
+    for (let d = 0; d < 7; d++) {
+      for (let m = 0; m < 2; m++) {
+        if (mem.eaten[`${d}-${m}`]) applyEatenState(d, m, true);
+      }
+      checkDayComplete(d, mem);
+    }
+  }
+
+  // Restore rerolls
+  if (mem.rerolls) {
+    for (const [key, val] of Object.entries(mem.rerolls)) {
+      const [d, m] = key.split('-');
+      const nameEl = document.getElementById(`mn-${d}-${m}`);
+      const kcalEl = document.getElementById(`mk-${d}-${m}`);
+      const ingEl = document.getElementById(`mi-${d}-${m}`);
+      if (nameEl) nameEl.textContent = val.name;
+      if (kcalEl) kcalEl.innerHTML = `${val.kcal}<small>kcal</small>`;
+      if (ingEl) {
+        const parts = val.desc.split('+').map(p => p.trim());
+        ingEl.innerHTML = parts.map(p => `<div class="ing-row"><span class="ing-n">${p}</span><span class="ing-q"></span></div>`).join('');
+      }
+    }
+  }
+
+  updateTodayDots(mem);
+  buildCalendar();
+}
+
+// ══════ TOAST ══════
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2500);
+}
+
+// ══════ NAV ══════
+function showScreen(id, btn) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById('screen-' + id).classList.add('active');
+  if (btn) btn.classList.add('active');
+  else document.querySelectorAll('.nav-btn')[['azi','mese','antrenament','cumparaturi'].indexOf(id)].classList.add('active');
+}
+function showMeseDay(i, btn) {
+  document.querySelectorAll('#screen-mese .day-page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('#meseTabs .day-tab').forEach(t => t.classList.remove('active'));
+  document.getElementById('mese-' + i).classList.add('active');
+  if (btn) btn.classList.add('active');
+}
+function showWkDay(i, btn) {
+  document.querySelectorAll('#screen-antrenament .day-page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('#wkTabs .day-tab').forEach(t => t.classList.remove('active'));
+  document.getElementById('wk-' + i).classList.add('active');
+  btn.classList.add('active');
+}
+
+// ══════ TIMER ══════
+let timerInterval=null, timerSeconds=0, timerRunning=false, timerInitial=0;
+function timerSet(s){timerReset();timerSeconds=timerInitial=s;updateTimerDisplay()}
+function timerStart(){
+  if(timerRunning){clearInterval(timerInterval);timerRunning=false;document.getElementById('timerStartBtn').textContent='CONTINUĂ';document.getElementById('timerStartBtn').className='timer-btn start'}
+  else{timerRunning=true;document.getElementById('timerStartBtn').textContent='PAUZA';document.getElementById('timerStartBtn').className='timer-btn pause';
+  timerInterval=setInterval(()=>{if(timerSeconds>0){timerSeconds--;updateTimerDisplay();if(timerSeconds===0){clearInterval(timerInterval);timerRunning=false;document.getElementById('timerStartBtn').textContent='START';document.getElementById('timerStartBtn').className='timer-btn start';try{navigator.vibrate&&navigator.vibrate([200,100,200])}catch(e){}showToast('⏱ Timp expirat!')}}},1000)}
+}
+function timerReset(){clearInterval(timerInterval);timerRunning=false;timerSeconds=timerInitial;updateTimerDisplay();document.getElementById('timerStartBtn').textContent='START';document.getElementById('timerStartBtn').className='timer-btn start'}
+function updateTimerDisplay(){
+  const m=Math.floor(timerSeconds/60).toString().padStart(2,'0');
+  const s=(timerSeconds%60).toString().padStart(2,'0');
+  const d=document.getElementById('timerDisplay');
+  d.textContent=m+':'+s;
+  d.className='timer-display'+(timerSeconds>0&&timerSeconds<=5?' rest':'');
+}
+
+// ══════ SHOPPING ══════
+function shopToggle(el){el.classList.toggle('checked');el.querySelector('.si-cb').textContent=el.classList.contains('checked')?'✓':'';shopUpdateProgress();shopSave()}
+function shopUpdateProgress(){
+  const all=document.querySelectorAll('.shop-item');const done=document.querySelectorAll('.shop-item.checked');
+  document.getElementById('spFill').style.width=(all.length?done.length/all.length*100:0)+'%';
+  document.getElementById('spText').textContent=done.length+'/'+all.length;
+  document.querySelectorAll('.shop-cat').forEach(cat=>{
+    const t=cat.querySelectorAll('.shop-item').length,d=cat.querySelectorAll('.shop-item.checked').length;
+    const el=document.getElementById('cnt-'+cat.dataset.cat);
+    if(el)el.textContent=d===t?'✓ Gata':d+'/'+t;
+  });
+}
+function shopFilter(cat,btn){document.querySelectorAll('.sf-btn').forEach(b=>b.classList.remove('active'));btn.classList.add('active');document.querySelectorAll('.shop-cat').forEach(c=>c.classList.toggle('hidden',cat!=='all'&&c.dataset.cat!==cat))}
+function shopReset(){if(!confirm('Resetezi lista?'))return;document.querySelectorAll('.shop-item').forEach(el=>{el.classList.remove('checked');el.querySelector('.si-cb').textContent=''});shopUpdateProgress();const m=loadMemory();delete m.shop;saveMemory(m)}
+function shopSave(){const state=Array.from(document.querySelectorAll('.shop-item')).map(el=>el.classList.contains('checked'));const m=loadMemory();m.shop=state;saveMemory(m)}
+function shopLoad(){const m=loadMemory();if(!m.shop)return;document.querySelectorAll('.shop-item').forEach((el,i)=>{if(m.shop[i]){el.classList.add('checked');el.querySelector('.si-cb').textContent='✓'}});shopUpdateProgress()}
+
+// ══════ PWA INSTALL ══════
+let deferredPrompt=null;
+window.addEventListener('beforeinstallprompt',e=>{e.preventDefault();deferredPrompt=e;document.getElementById('installBanner').style.display='flex'});
+window.addEventListener('appinstalled',()=>{document.getElementById('installBanner').style.display='none'});
+function doInstall(){if(deferredPrompt){deferredPrompt.prompt();deferredPrompt.userChoice.then(()=>{deferredPrompt=null})}else{alert('Pe iPhone: butonul Share (↑) → "Add to Home Screen"\nPe Android: meniu ⋮ → "Adaugă pe ecranul principal"')}}
+if(window.matchMedia('(display-mode: standalone)').matches)document.getElementById('installBanner').style.display='none';
+
+// ══════ INIT ══════
+restoreState();
+shopLoad();
+
+// Set today's workout tab
+const todayIdx = getTodayIndex();
+showWkDay(todayIdx, document.querySelectorAll('#wkTabs .day-tab')[todayIdx]);
+showMeseDay(todayIdx, document.querySelectorAll('#meseTabs .day-tab')[todayIdx]);
+
+// Update day info
+const dayNames = ['LUNI','MARȚI','MIERCURI','JOI','VINERI','SÂMBĂTĂ','DUMINICĂ'];
+document.getElementById('aziDayName').textContent = 'AZI — ' + dayNames[todayIdx];
+document.getElementById('aziDayLabel').textContent = 'Ziua ' + (todayIdx + 1);
+document.getElementById('aziDayNum').textContent = todayIdx + 1;
+document.getElementById('aziTag').textContent = `Programul tău · Zi ${todayIdx+1} din 30`;
+</script>
+</body>
+</html>
