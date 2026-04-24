@@ -29,6 +29,7 @@ body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;ove
 
 /* NAV */
 .nav{position:fixed;bottom:0;left:0;right:0;height:calc(var(--nav-h) + var(--safe-bottom));padding-bottom:var(--safe-bottom);background:var(--surface);border-top:1px solid var(--border);display:flex;align-items:stretch;z-index:100}
+.nav::after{content:'';position:absolute;bottom:calc(-1 * var(--safe-bottom));left:0;right:0;height:var(--safe-bottom);background:var(--surface)}
 .nav-btn{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;cursor:pointer;background:none;border:none;color:var(--text2);font-family:'DM Sans',sans-serif;transition:color .2s;padding-top:8px}
 .nav-btn.active{color:var(--accent)}
 .nav-icon{font-size:22px;line-height:1}
@@ -213,6 +214,21 @@ body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;ove
 /* TOAST */
 .toast{position:fixed;bottom:calc(var(--nav-h) + var(--safe-bottom) + 16px);left:50%;transform:translateX(-50%) translateY(20px);background:var(--green);color:#fff;font-size:14px;font-weight:600;padding:12px 24px;border-radius:30px;z-index:300;opacity:0;transition:all .3s;pointer-events:none;white-space:nowrap}
 .toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+
+/* EDIT MODAL */
+.edit-overlay{position:fixed;inset:0;background:rgba(0,0,0,.85);z-index:200;display:none;align-items:flex-end}
+.edit-overlay.open{display:flex}
+.edit-sheet{background:var(--surface);border-radius:20px 20px 0 0;padding:24px 20px calc(24px + var(--safe-bottom));width:100%;max-height:85vh;overflow-y:auto}
+.edit-handle{width:40px;height:4px;background:var(--border);border-radius:2px;margin:0 auto 20px}
+.edit-title{font-family:'Bebas Neue',sans-serif;font-size:22px;letter-spacing:1px;margin-bottom:4px}
+.edit-sub{font-size:13px;color:var(--text2);margin-bottom:16px}
+.edit-label{font-size:10px;font-weight:600;letter-spacing:1.5px;text-transform:uppercase;color:var(--text2);margin:14px 0 6px}
+.edit-sheet textarea{width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:12px;color:var(--text);font-size:13px;line-height:1.6;resize:none;font-family:'DM Sans',sans-serif}
+.edit-actions{display:flex;gap:10px;margin-top:18px}
+.btn-edit-cancel{flex:1;padding:13px;border-radius:10px;border:1px solid var(--border);background:var(--surface2);color:var(--text2);font-family:'DM Sans',sans-serif;font-size:14px;font-weight:600;cursor:pointer}
+.btn-edit-save{flex:2;padding:13px;border-radius:10px;border:none;background:var(--accent);color:#0a0a0a;font-family:'Bebas Neue',sans-serif;font-size:18px;letter-spacing:1px;cursor:pointer}
+.btn-edit-meal{display:flex;align-items:center;justify-content:center;gap:6px;padding:10px 14px;border-radius:10px;border:1px solid var(--border);font-family:'DM Sans',sans-serif;font-size:13px;font-weight:600;cursor:pointer;background:var(--surface3);color:var(--text2);transition:all .2s}
+.btn-edit-meal:active{background:rgba(62,207,255,.12);color:var(--blue);border-color:var(--blue)}
 </style>
 </head>
 <body>
@@ -227,6 +243,23 @@ body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;ove
     <div class="reroll-subtitle" id="rerollSubtitle">Alege o rețetă alternativă</div>
     <div id="rerollOptions"></div>
     <button class="reroll-close" onclick="closeReroll()">Păstrez rețeta originală</button>
+  </div>
+</div>
+
+<!-- EDIT REȚETĂ MODAL -->
+<div class="edit-overlay" id="editOverlay" onclick="closeEdit(event)">
+  <div class="edit-sheet">
+    <div class="edit-handle"></div>
+    <div class="edit-title" id="editMealName">Editează rețeta</div>
+    <div class="edit-sub">Modifică după gustul tău — se salvează automat</div>
+    <div class="edit-label">🥩 Ingrediente</div>
+    <textarea id="editIngr" rows="4" placeholder="ex: 4 ouă, 250g cartofi, 50g cașcaval..."></textarea>
+    <div class="edit-label">👨‍🍳 Pași preparare</div>
+    <textarea id="editSteps" rows="6" placeholder="Fiecare pas pe o linie nouă..."></textarea>
+    <div class="edit-actions">
+      <button class="btn-edit-cancel" onclick="closeEditBtn()">Anulează</button>
+      <button class="btn-edit-save" onclick="saveEdit()">SALVEAZĂ</button>
+    </div>
   </div>
 </div>
 
@@ -294,6 +327,15 @@ body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;ove
     <div class="hero-title">MESE <span>&</span><br>REȚETE</div>
     <div class="hero-sub">2 mese/zi · ~1850 kcal · Fără pește</div>
   </div>
+
+  <!-- WEEK SELECTOR -->
+  <div style="display:flex;gap:8px;padding:12px 16px;background:var(--surface);border-bottom:1px solid var(--border)">
+    <button id="wkSelBtn1" onclick="selectWeek(1)" style="flex:1;padding:10px;border-radius:10px;border:none;font-family:'Bebas Neue',sans-serif;font-size:18px;letter-spacing:1px;cursor:pointer;background:var(--accent);color:#0a0a0a">SĂPT. 1</button>
+    <button id="wkSelBtn2" onclick="selectWeek(2)" style="flex:1;padding:10px;border-radius:10px;border:1px solid var(--border);font-family:'Bebas Neue',sans-serif;font-size:18px;letter-spacing:1px;cursor:pointer;background:var(--surface2);color:var(--text2)">SĂPT. 2</button>
+  </div>
+
+  <!-- SĂPTĂMÂNA 1 -->
+  <div id="weekBlock1">
   <div class="day-tabs" id="meseTabs">
     <button class="day-tab active" onclick="showMeseDay(0,this)"><span class="dn">L</span><span class="dl">Luni</span><span class="done-dot"></span></button>
     <button class="day-tab" onclick="showMeseDay(1,this)"><span class="dn">M</span><span class="dl">Marți</span><span class="done-dot"></span></button>
@@ -329,6 +371,7 @@ body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;ove
       </div>
       <div class="meal-actions">
         <button class="btn-eaten" id="eat-0-0" onclick="toggleEaten(0,0)">✓ Am mâncat</button>
+        <button class="btn-edit-meal" onclick="openEdit(0,0)">✏️ Modific rețeta</button>
         <button class="btn-reroll" onclick="openReroll(0,0,'11:00')">🔀 Alt preparat</button>
       </div>
     </div>
@@ -352,6 +395,7 @@ body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;ove
       </div>
       <div class="meal-actions">
         <button class="btn-eaten" id="eat-0-1" onclick="toggleEaten(0,1)">✓ Am mâncat</button>
+        <button class="btn-edit-meal" onclick="openEdit(0,1)">✏️ Modific rețeta</button>
         <button class="btn-reroll" onclick="openReroll(0,1,'19:00')">🔀 Alt preparat</button>
       </div>
     </div>
@@ -380,6 +424,7 @@ body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;ove
       </div>
       <div class="meal-actions">
         <button class="btn-eaten" id="eat-1-0" onclick="toggleEaten(1,0)">✓ Am mâncat</button>
+        <button class="btn-edit-meal" onclick="openEdit(1,0)">✏️ Modific rețeta</button>
         <button class="btn-reroll" onclick="openReroll(1,0,'11:00')">🔀 Alt preparat</button>
       </div>
     </div>
@@ -403,6 +448,7 @@ body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;ove
       </div>
       <div class="meal-actions">
         <button class="btn-eaten" id="eat-1-1" onclick="toggleEaten(1,1)">✓ Am mâncat</button>
+        <button class="btn-edit-meal" onclick="openEdit(1,1)">✏️ Modific rețeta</button>
         <button class="btn-reroll" onclick="openReroll(1,1,'19:00')">🔀 Alt preparat</button>
       </div>
     </div>
@@ -429,6 +475,7 @@ body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;ove
       </div>
       <div class="meal-actions">
         <button class="btn-eaten" id="eat-2-0" onclick="toggleEaten(2,0)">✓ Am mâncat</button>
+        <button class="btn-edit-meal" onclick="openEdit(2,0)">✏️ Modific rețeta</button>
         <button class="btn-reroll" onclick="openReroll(2,0,'11:00')">🔀 Alt preparat</button>
       </div>
     </div>
@@ -451,6 +498,7 @@ body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;ove
       </div>
       <div class="meal-actions">
         <button class="btn-eaten" id="eat-2-1" onclick="toggleEaten(2,1)">✓ Am mâncat</button>
+        <button class="btn-edit-meal" onclick="openEdit(2,1)">✏️ Modific rețeta</button>
         <button class="btn-reroll" onclick="openReroll(2,1,'19:00')">🔀 Alt preparat</button>
       </div>
     </div>
@@ -477,6 +525,7 @@ body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;ove
       </div>
       <div class="meal-actions">
         <button class="btn-eaten" id="eat-3-0" onclick="toggleEaten(3,0)">✓ Am mâncat</button>
+        <button class="btn-edit-meal" onclick="openEdit(3,0)">✏️ Modific rețeta</button>
         <button class="btn-reroll" onclick="openReroll(3,0,'11:00')">🔀 Alt preparat</button>
       </div>
     </div>
@@ -499,6 +548,7 @@ body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;ove
       </div>
       <div class="meal-actions">
         <button class="btn-eaten" id="eat-3-1" onclick="toggleEaten(3,1)">✓ Am mâncat</button>
+        <button class="btn-edit-meal" onclick="openEdit(3,1)">✏️ Modific rețeta</button>
         <button class="btn-reroll" onclick="openReroll(3,1,'19:00')">🔀 Alt preparat</button>
       </div>
     </div>
@@ -524,6 +574,7 @@ body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;ove
       </div>
       <div class="meal-actions">
         <button class="btn-eaten" id="eat-4-0" onclick="toggleEaten(4,0)">✓ Am mâncat</button>
+        <button class="btn-edit-meal" onclick="openEdit(4,0)">✏️ Modific rețeta</button>
         <button class="btn-reroll" onclick="openReroll(4,0,'11:00')">🔀 Alt preparat</button>
       </div>
     </div>
@@ -545,6 +596,7 @@ body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;ove
       </div>
       <div class="meal-actions">
         <button class="btn-eaten" id="eat-4-1" onclick="toggleEaten(4,1)">✓ Am mâncat</button>
+        <button class="btn-edit-meal" onclick="openEdit(4,1)">✏️ Modific rețeta</button>
         <button class="btn-reroll" onclick="openReroll(4,1,'19:00')">🔀 Alt preparat</button>
       </div>
     </div>
@@ -570,6 +622,7 @@ body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;ove
       </div>
       <div class="meal-actions">
         <button class="btn-eaten" id="eat-5-0" onclick="toggleEaten(5,0)">✓ Am mâncat</button>
+        <button class="btn-edit-meal" onclick="openEdit(5,0)">✏️ Modific rețeta</button>
         <button class="btn-reroll" onclick="openReroll(5,0,'11:00')">🔀 Alt preparat</button>
       </div>
     </div>
@@ -591,6 +644,7 @@ body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;ove
       </div>
       <div class="meal-actions">
         <button class="btn-eaten" id="eat-5-1" onclick="toggleEaten(5,1)">✓ Am mâncat</button>
+        <button class="btn-edit-meal" onclick="openEdit(5,1)">✏️ Modific rețeta</button>
         <button class="btn-reroll" onclick="openReroll(5,1,'19:00')">🔀 Alt preparat</button>
       </div>
     </div>
@@ -616,6 +670,7 @@ body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;ove
       </div>
       <div class="meal-actions">
         <button class="btn-eaten" id="eat-6-0" onclick="toggleEaten(6,0)">✓ Am mâncat</button>
+        <button class="btn-edit-meal" onclick="openEdit(6,0)">✏️ Modific rețeta</button>
         <button class="btn-reroll" onclick="openReroll(6,0,'11:00')">🔀 Alt preparat</button>
       </div>
     </div>
@@ -637,10 +692,394 @@ body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;ove
       </div>
       <div class="meal-actions">
         <button class="btn-eaten" id="eat-6-1" onclick="toggleEaten(6,1)">✓ Am mâncat</button>
+        <button class="btn-edit-meal" onclick="openEdit(6,1)">✏️ Modific rețeta</button>
         <button class="btn-reroll" onclick="openReroll(6,1,'19:00')">🔀 Alt preparat</button>
       </div>
     </div>
   </div>
+</div><!-- /weekBlock1 -->
+
+  <!-- SĂPTĂMÂNA 2 -->
+  <div id="weekBlock2" style="display:none">
+  <div class="day-tabs" id="meseTabs2">
+    <button class="day-tab active" onclick="showMeseDay2(0,this)"><span class="dn">L</span><span class="dl">Luni</span></button>
+    <button class="day-tab" onclick="showMeseDay2(1,this)"><span class="dn">M</span><span class="dl">Marți</span></button>
+    <button class="day-tab" onclick="showMeseDay2(2,this)"><span class="dn">M</span><span class="dl">Miercuri</span></button>
+    <button class="day-tab" onclick="showMeseDay2(3,this)"><span class="dn">J</span><span class="dl">Joi</span></button>
+    <button class="day-tab" onclick="showMeseDay2(4,this)"><span class="dn">V</span><span class="dl">Vineri</span></button>
+    <button class="day-tab" onclick="showMeseDay2(5,this)"><span class="dn">S</span><span class="dl">Sâmbătă</span></button>
+    <button class="day-tab" onclick="showMeseDay2(6,this)"><span class="dn">D</span><span class="dl">Duminică</span></button>
+  </div>
+
+  <!-- W2 LUNI -->
+  <div class="day-page active" id="mese2-0">
+    <div class="meal-card" id="mc-w2-0-0">
+      <div class="meal-head">
+        <div class="meal-head-left"><div class="meal-time">🕚 Ora 11:00</div><div class="meal-name" id="mn-w2-0-0">Shakshuka — Ouă în sos de roșii</div></div>
+        <div class="meal-head-right"><div class="meal-kcal" id="mk-w2-0-0">850<small>kcal</small></div></div>
+      </div>
+      <div id="mi-w2-0-0">
+        <div class="ing-row"><span class="ing-n">🥚 Ouă</span><span class="ing-q">5 buc</span></div>
+        <div class="ing-row"><span class="ing-n">🍅 Roșii tocate conservă</span><span class="ing-q">400g</span></div>
+        <div class="ing-row"><span class="ing-n">🫑 Ardei roșu + ceapă + usturoi</span><span class="ing-q">câte 1 buc</span></div>
+        <div class="ing-row"><span class="ing-n">🌶 Chimion + paprika + ulei</span><span class="ing-q">după gust</span></div>
+        <div class="ing-row"><span class="ing-n">🍞 Pâine integrală</span><span class="ing-q">3 felii</span></div>
+      </div>
+      <div class="prep-wrap">
+        <div class="prep-label">👨‍🍳 Preparare</div>
+        <div class="prep-step"><div class="step-n">1</div><div>Căliți ceapa și ardeiul în ulei <strong>5 min</strong>. Adaugă usturoiul și chimionul, 1 min.</div></div>
+        <div class="prep-step"><div class="step-n">2</div><div>Toarnă roșiile + paprika + sare + piper. Fierbe la foc mic <strong>10 min</strong>.</div></div>
+        <div class="prep-step"><div class="step-n">3</div><div>Fă 5 adâncituri, sparge câte un ou. Acoperă și gătește <strong>6–8 min</strong>.</div></div>
+        <div class="prep-step"><div class="step-n">4</div><div>Presară pătrunjel. Servește cu pâine. <em style="color:var(--blue)">⏱ ~25 min</em></div></div>
+        <div class="prep-tip"><strong>💡</strong> Gălbenușul moale = ideal. Verifică la 6 min.</div>
+      </div>
+      <div class="meal-actions">
+        <button class="btn-eaten" id="eat-w2-0-0" onclick="toggleEatenW2(0,0)">✓ Am mâncat</button>
+        <button class="btn-edit-meal" onclick="openEditW2(0,0)">✏️ Modific rețeta</button>
+        <button class="btn-reroll" onclick="openReroll(0,0,'11:00')">🔀 Alt preparat</button>
+      </div>
+    </div>
+    <div class="meal-card" id="mc-w2-0-1">
+      <div class="meal-head">
+        <div class="meal-head-left"><div class="meal-time">🕖 Ora 19:00</div><div class="meal-name" id="mn-w2-0-1">Pui teriyaki cu orez și broccoli</div></div>
+        <div class="meal-head-right"><div class="meal-kcal" id="mk-w2-0-1">1000<small>kcal</small></div></div>
+      </div>
+      <div id="mi-w2-0-1">
+        <div class="ing-row"><span class="ing-n">🍗 Piept pui</span><span class="ing-q">350g</span></div>
+        <div class="ing-row"><span class="ing-n">🍚 Orez</span><span class="ing-q">150g uscat</span></div>
+        <div class="ing-row"><span class="ing-n">🥦 Broccoli</span><span class="ing-q">250g</span></div>
+        <div class="ing-row"><span class="ing-n">🫙 Sos soia + miere + usturoi + ghimbir</span><span class="ing-q">3L + 1L + 2 căței + 1cm</span></div>
+      </div>
+      <div class="prep-wrap">
+        <div class="prep-label">👨‍🍳 Preparare</div>
+        <div class="prep-step"><div class="step-n">1</div><div>Fierbe orezul. Broccoli în apă cu sare <strong>5 min</strong>.</div></div>
+        <div class="prep-step"><div class="step-n">2</div><div>Amestecă sos soia + miere + usturoi zdrobit + ghimbir ras + 1 linguriță amidon în 2L apă.</div></div>
+        <div class="prep-step"><div class="step-n">3</div><div>Taie puiul fâșii, gătește în ulei <strong>5–6 min</strong>. Adaugă sosul, <strong>2–3 min</strong> până glazurează.</div></div>
+        <div class="prep-step"><div class="step-n">4</div><div>Servește cu orez și broccoli. <em style="color:var(--blue)">⏱ ~30 min</em></div></div>
+      </div>
+      <div class="meal-actions">
+        <button class="btn-eaten" id="eat-w2-0-1" onclick="toggleEatenW2(0,1)">✓ Am mâncat</button>
+        <button class="btn-edit-meal" onclick="openEditW2(0,1)">✏️ Modific rețeta</button>
+        <button class="btn-reroll" onclick="openReroll(0,1,'19:00')">🔀 Alt preparat</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- W2 MARȚI -->
+  <div class="day-page" id="mese2-1">
+    <div class="meal-card" id="mc-w2-1-0">
+      <div class="meal-head">
+        <div class="meal-head-left"><div class="meal-time">🕚 Ora 11:00</div><div class="meal-name" id="mn-w2-1-0">Supă cremă de linte cu legume</div></div>
+        <div class="meal-head-right"><div class="meal-kcal" id="mk-w2-1-0">780<small>kcal</small></div></div>
+      </div>
+      <div id="mi-w2-1-0">
+        <div class="ing-row"><span class="ing-n">🫘 Linte roșie</span><span class="ing-q">300g</span></div>
+        <div class="ing-row"><span class="ing-n">🥕 Morcovi + ceapă + usturoi</span><span class="ing-q">2 buc + câte 1</span></div>
+        <div class="ing-row"><span class="ing-n">🍅 Roșii sau bulion</span><span class="ing-q">200ml</span></div>
+        <div class="ing-row"><span class="ing-n">🌶 Chimion + coriandru + turmeric</span><span class="ing-q">câte 1 linguriță</span></div>
+        <div class="ing-row"><span class="ing-n">🍋 Lămâie + pâine integrală</span><span class="ing-q">1/2 + 3 felii</span></div>
+      </div>
+      <div class="prep-wrap">
+        <div class="prep-label">👨‍🍳 Preparare</div>
+        <div class="prep-step"><div class="step-n">1</div><div>Clătește lintea. Căliți ceapa în ulei <strong>4 min</strong>. Adaugă morcovii, usturoiul, condimentele.</div></div>
+        <div class="prep-step"><div class="step-n">2</div><div>Adaugă lintea, roșiile, 1.5L apă. Fierbe la foc mic <strong>25–30 min</strong>.</div></div>
+        <div class="prep-step"><div class="step-n">3</div><div>Pasează parțial cu blenderul. Adaugă lămâie, ajustează sarea. <em style="color:var(--blue)">⏱ ~40 min</em></div></div>
+        <div class="prep-tip"><strong>💡</strong> Fă oală dublă — a doua zi e și mai gustoasă.</div>
+      </div>
+      <div class="meal-actions">
+        <button class="btn-eaten" id="eat-w2-1-0" onclick="toggleEatenW2(1,0)">✓ Am mâncat</button>
+        <button class="btn-edit-meal" onclick="openEditW2(1,0)">✏️ Modific rețeta</button>
+        <button class="btn-reroll" onclick="openReroll(1,0,'11:00')">🔀 Alt preparat</button>
+      </div>
+    </div>
+    <div class="meal-card" id="mc-w2-1-1">
+      <div class="meal-head">
+        <div class="meal-head-left"><div class="meal-time">🕖 Ora 19:00</div><div class="meal-name" id="mn-w2-1-1">Pui cu cartofi dulci la cuptor</div></div>
+        <div class="meal-head-right"><div class="meal-kcal" id="mk-w2-1-1">1070<small>kcal</small></div></div>
+      </div>
+      <div id="mi-w2-1-1">
+        <div class="ing-row"><span class="ing-n">🍗 Piept sau coapse pui</span><span class="ing-q">400g</span></div>
+        <div class="ing-row"><span class="ing-n">🍠 Cartofi dulci</span><span class="ing-q">3 buc medii</span></div>
+        <div class="ing-row"><span class="ing-n">🧅 Ceapă roșie + usturoi</span><span class="ing-q">1 buc + 3 căței</span></div>
+        <div class="ing-row"><span class="ing-n">🍯 Miere + boia afumată + cimbru</span><span class="ing-q">1L + 1 linguriță + după gust</span></div>
+      </div>
+      <div class="prep-wrap">
+        <div class="prep-label">👨‍🍳 Preparare</div>
+        <div class="prep-step"><div class="step-n">1</div><div>Cuptor 200°C. Amestecă ulei + miere + boia afumată + cimbru + sare + piper.</div></div>
+        <div class="prep-step"><div class="step-n">2</div><div>Marinează puiul 10 min în jumătate din amestec. Asezonează legumele cu restul.</div></div>
+        <div class="prep-step"><div class="step-n">3</div><div>Legumele pe tavă, puiul deasupra, usturoi necurățat alături. Coace <strong>35–40 min</strong>. <em style="color:var(--blue)">⏱ ~50 min</em></div></div>
+      </div>
+      <div class="meal-actions">
+        <button class="btn-eaten" id="eat-w2-1-1" onclick="toggleEatenW2(1,1)">✓ Am mâncat</button>
+        <button class="btn-edit-meal" onclick="openEditW2(1,1)">✏️ Modific rețeta</button>
+        <button class="btn-reroll" onclick="openReroll(1,1,'19:00')">🔀 Alt preparat</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- W2 MIERCURI -->
+  <div class="day-page" id="mese2-2">
+    <div class="meal-card" id="mc-w2-2-0">
+      <div class="meal-head">
+        <div class="meal-head-left"><div class="meal-time">🕚 Ora 11:00</div><div class="meal-name" id="mn-w2-2-0">Wrap cu pui și legume</div></div>
+        <div class="meal-head-right"><div class="meal-kcal" id="mk-w2-2-0">890<small>kcal</small></div></div>
+      </div>
+      <div id="mi-w2-2-0">
+        <div class="ing-row"><span class="ing-n">🍗 Piept pui</span><span class="ing-q">300g</span></div>
+        <div class="ing-row"><span class="ing-n">🫓 Lipii integrale</span><span class="ing-q">4 buc</span></div>
+        <div class="ing-row"><span class="ing-n">🧀 Cașcaval ras</span><span class="ing-q">80g</span></div>
+        <div class="ing-row"><span class="ing-n">🥑 Avocado + ardei + salată verde</span><span class="ing-q">1 buc + 1 buc + după gust</span></div>
+        <div class="ing-row"><span class="ing-n">🥛 Iaurt + lămâie (dressing)</span><span class="ing-q">2L + suc 1/2</span></div>
+      </div>
+      <div class="prep-wrap">
+        <div class="prep-label">👨‍🍳 Preparare</div>
+        <div class="prep-step"><div class="step-n">1</div><div>Taie puiul fâșii, condimentează cu boia + sare + piper. Gătește în ulei <strong>6–7 min</strong>.</div></div>
+        <div class="prep-step"><div class="step-n">2</div><div>Dressing: iaurt + suc lămâie + sare. Încălzește lipiile 30 sec în tigaie uscată.</div></div>
+        <div class="prep-step"><div class="step-n">3</div><div>Asamblează: lipie + salată + pui + ardei + avocado + cașcaval + dressing. Rulează strâns. <em style="color:var(--blue)">⏱ ~20 min</em></div></div>
+      </div>
+      <div class="meal-actions">
+        <button class="btn-eaten" id="eat-w2-2-0" onclick="toggleEatenW2(2,0)">✓ Am mâncat</button>
+        <button class="btn-edit-meal" onclick="openEditW2(2,0)">✏️ Modific rețeta</button>
+        <button class="btn-reroll" onclick="openReroll(2,0,'11:00')">🔀 Alt preparat</button>
+      </div>
+    </div>
+    <div class="meal-card" id="mc-w2-2-1">
+      <div class="meal-head">
+        <div class="meal-head-left"><div class="meal-time">🕖 Ora 19:00</div><div class="meal-name" id="mn-w2-2-1">Tocitură de porc cu mămăligă</div></div>
+        <div class="meal-head-right"><div class="meal-kcal" id="mk-w2-2-1">960<small>kcal</small></div></div>
+      </div>
+      <div id="mi-w2-2-1">
+        <div class="ing-row"><span class="ing-n">🥩 Ceafă sau pulpă porc</span><span class="ing-q">400g</span></div>
+        <div class="ing-row"><span class="ing-n">🌽 Mălai</span><span class="ing-q">200g</span></div>
+        <div class="ing-row"><span class="ing-n">🥚 Ouă prăjite</span><span class="ing-q">2 buc</span></div>
+        <div class="ing-row"><span class="ing-n">🧀 Telemea sau brânză sărată</span><span class="ing-q">50g</span></div>
+        <div class="ing-row"><span class="ing-n">🧄 Usturoi + boia + cimbru</span><span class="ing-q">după gust</span></div>
+      </div>
+      <div class="prep-wrap">
+        <div class="prep-label">👨‍🍳 Preparare</div>
+        <div class="prep-step"><div class="step-n">1</div><div>Mămăligă: 800ml apă cu sare la fiert, presară 200g mălai în ploaie. Gătește <strong>25–30 min</strong> la foc mic, amestecând.</div></div>
+        <div class="prep-step"><div class="step-n">2</div><div>Taie carnea cuburi. Rumenește în grăsime la foc mare <strong>5–6 min</strong>. Adaugă usturoi, boia, cimbru.</div></div>
+        <div class="prep-step"><div class="step-n">3</div><div>Prăjește ouăle separat. Servește tochitura cu mămăligă + ou prăjit + brânză sfărâmată. <em style="color:var(--blue)">⏱ ~40 min</em></div></div>
+        <div class="prep-tip"><strong>💡</strong> Mămăliga e gata când se desprinde de marginile oalei.</div>
+      </div>
+      <div class="meal-actions">
+        <button class="btn-eaten" id="eat-w2-2-1" onclick="toggleEatenW2(2,1)">✓ Am mâncat</button>
+        <button class="btn-edit-meal" onclick="openEditW2(2,1)">✏️ Modific rețeta</button>
+        <button class="btn-reroll" onclick="openReroll(2,1,'19:00')">🔀 Alt preparat</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- W2 JOI -->
+  <div class="day-page" id="mese2-3">
+    <div class="meal-card" id="mc-w2-3-0">
+      <div class="meal-head">
+        <div class="meal-head-left"><div class="meal-time">🕚 Ora 11:00</div><div class="meal-name" id="mn-w2-3-0">Salată orientală cu pui și năut</div></div>
+        <div class="meal-head-right"><div class="meal-kcal" id="mk-w2-3-0">870<small>kcal</small></div></div>
+      </div>
+      <div id="mi-w2-3-0">
+        <div class="ing-row"><span class="ing-n">🍗 Piept pui gătit</span><span class="ing-q">300g</span></div>
+        <div class="ing-row"><span class="ing-n">🫘 Năut conservă</span><span class="ing-q">400g</span></div>
+        <div class="ing-row"><span class="ing-n">🥒 Castravete + roșii + ceapă roșie</span><span class="ing-q">1 + 3 + 1/2</span></div>
+        <div class="ing-row"><span class="ing-n">🫒 Măsline + brânză feta</span><span class="ing-q">100g + 80g</span></div>
+        <div class="ing-row"><span class="ing-n">🫒 Ulei măsline + oțet + oregano</span><span class="ing-q">3L + 1L + după gust</span></div>
+      </div>
+      <div class="prep-wrap">
+        <div class="prep-label">👨‍🍳 Preparare</div>
+        <div class="prep-step"><div class="step-n">1</div><div>Gătește puiul condimentat în tigaie <strong>6–7 min/parte</strong>. Lasă să se răcească, feliază.</div></div>
+        <div class="prep-step"><div class="step-n">2</div><div>Scurge și clătește năutul. Taie toate legumele.</div></div>
+        <div class="prep-step"><div class="step-n">3</div><div>Combină totul. Dressing: ulei + oțet + oregano + sare + piper. Sfărâmă feta deasupra. <em style="color:var(--blue)">⏱ ~25 min</em></div></div>
+      </div>
+      <div class="meal-actions">
+        <button class="btn-eaten" id="eat-w2-3-0" onclick="toggleEatenW2(3,0)">✓ Am mâncat</button>
+        <button class="btn-edit-meal" onclick="openEditW2(3,0)">✏️ Modific rețeta</button>
+        <button class="btn-reroll" onclick="openReroll(3,0,'11:00')">🔀 Alt preparat</button>
+      </div>
+    </div>
+    <div class="meal-card" id="mc-w2-3-1">
+      <div class="meal-head">
+        <div class="meal-head-left"><div class="meal-time">🕖 Ora 19:00</div><div class="meal-name" id="mn-w2-3-1">Vită cu sos de ciuperci și piure</div></div>
+        <div class="meal-head-right"><div class="meal-kcal" id="mk-w2-3-1">1080<small>kcal</small></div></div>
+      </div>
+      <div id="mi-w2-3-1">
+        <div class="ing-row"><span class="ing-n">🥩 Carne vită (pulpă sau antricot)</span><span class="ing-q">350g</span></div>
+        <div class="ing-row"><span class="ing-n">🍄 Ciuperci champignon</span><span class="ing-q">300g</span></div>
+        <div class="ing-row"><span class="ing-n">🥔 Cartofi pentru piure</span><span class="ing-q">4 buc medii</span></div>
+        <div class="ing-row"><span class="ing-n">🧈 Unt + lapte + smântână 20%</span><span class="ing-q">30g + 100ml + 100ml</span></div>
+        <div class="ing-row"><span class="ing-n">🧄 Usturoi + cimbru + pătrunjel</span><span class="ing-q">3 căței + după gust</span></div>
+      </div>
+      <div class="prep-wrap">
+        <div class="prep-label">👨‍🍳 Preparare</div>
+        <div class="prep-step"><div class="step-n">1</div><div>Fierbe cartofii în apă cu sare <strong>20–25 min</strong>. Pasează cu unt + lapte cald + sare.</div></div>
+        <div class="prep-step"><div class="step-n">2</div><div>Condimentează carnea. Gătește în tigaie la foc mare <strong>4–5 min/parte</strong>. Odihnă 5 min.</div></div>
+        <div class="prep-step"><div class="step-n">3</div><div>În aceeași tigaie, gătește ciupercile cu unt + usturoi <strong>5–6 min</strong>. Adaugă smântâna, fierbe 2 min.</div></div>
+        <div class="prep-step"><div class="step-n">4</div><div>Servește carnea feliată cu sos de ciuperci și piure. <em style="color:var(--blue)">⏱ ~40 min</em></div></div>
+      </div>
+      <div class="meal-actions">
+        <button class="btn-eaten" id="eat-w2-3-1" onclick="toggleEatenW2(3,1)">✓ Am mâncat</button>
+        <button class="btn-edit-meal" onclick="openEditW2(3,1)">✏️ Modific rețeta</button>
+        <button class="btn-reroll" onclick="openReroll(3,1,'19:00')">🔀 Alt preparat</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- W2 VINERI -->
+  <div class="day-page" id="mese2-4">
+    <div class="meal-card" id="mc-w2-4-0">
+      <div class="meal-head">
+        <div class="meal-head-left"><div class="meal-time">🕚 Ora 11:00</div><div class="meal-name" id="mn-w2-4-0">Orez prăjit cu ou și legume</div></div>
+        <div class="meal-head-right"><div class="meal-kcal" id="mk-w2-4-0">900<small>kcal</small></div></div>
+      </div>
+      <div id="mi-w2-4-0">
+        <div class="ing-row"><span class="ing-n">🍚 Orez gătit (rece)</span><span class="ing-q">200g</span></div>
+        <div class="ing-row"><span class="ing-n">🥚 Ouă</span><span class="ing-q">3 buc</span></div>
+        <div class="ing-row"><span class="ing-n">🥕 Morcov + ardei + mazăre congelată</span><span class="ing-q">1 + 1 + 100g</span></div>
+        <div class="ing-row"><span class="ing-n">🫙 Sos soia + usturoi + ghimbir</span><span class="ing-q">3L + 3 căței + 1cm</span></div>
+        <div class="ing-row"><span class="ing-n">🧅 Ceapă verde</span><span class="ing-q">pentru decor</span></div>
+      </div>
+      <div class="prep-wrap">
+        <div class="prep-label">👨‍🍳 Preparare</div>
+        <div class="prep-step"><div class="step-n">1</div><div>Încălzește wok-ul sau tigaia mare la foc puternic. Prăjește ouăle bătute rapid, scoate-le.</div></div>
+        <div class="prep-step"><div class="step-n">2</div><div>Adaugă morcovul și ardeiul, <strong>3 min</strong>. Adaugă usturoi + ghimbir, <strong>1 min</strong>.</div></div>
+        <div class="prep-step"><div class="step-n">3</div><div>Adaugă orezul rece, presând în tigaie <strong>3–4 min</strong>. Adaugă mazărea, sosul, ouăle. Decorează cu ceapă verde. <em style="color:var(--blue)">⏱ ~20 min</em></div></div>
+        <div class="prep-tip"><strong>💡</strong> Orezul rece de ieri funcționează cel mai bine — nu se lipește.</div>
+      </div>
+      <div class="meal-actions">
+        <button class="btn-eaten" id="eat-w2-4-0" onclick="toggleEatenW2(4,0)">✓ Am mâncat</button>
+        <button class="btn-edit-meal" onclick="openEditW2(4,0)">✏️ Modific rețeta</button>
+        <button class="btn-reroll" onclick="openReroll(4,0,'11:00')">🔀 Alt preparat</button>
+      </div>
+    </div>
+    <div class="meal-card" id="mc-w2-4-1">
+      <div class="meal-head">
+        <div class="meal-head-left"><div class="meal-time">🕖 Ora 19:00</div><div class="meal-name" id="mn-w2-4-1">Piept pui cu crustă de muștar</div></div>
+        <div class="meal-head-right"><div class="meal-kcal" id="mk-w2-4-1">950<small>kcal</small></div></div>
+      </div>
+      <div id="mi-w2-4-1">
+        <div class="ing-row"><span class="ing-n">🍗 Piept pui întreg</span><span class="ing-q">400g (2 buc)</span></div>
+        <div class="ing-row"><span class="ing-n">🫙 Muștar Dijon</span><span class="ing-q">3 linguri</span></div>
+        <div class="ing-row"><span class="ing-n">🌿 Rozmarin + cimbru + usturoi</span><span class="ing-q">după gust + 2 căței</span></div>
+        <div class="ing-row"><span class="ing-n">🥔 Cartofi</span><span class="ing-q">4 medii</span></div>
+      </div>
+      <div class="prep-wrap">
+        <div class="prep-label">👨‍🍳 Preparare</div>
+        <div class="prep-step"><div class="step-n">1</div><div>Cuptor 200°C. Amestecă muștar + usturoi zdrobit + rozmarin tocat + cimbru + ulei + sare + piper.</div></div>
+        <div class="prep-step"><div class="step-n">2</div><div>Acoperă complet puiul cu amestec. Taie cartofii felii, asezonează cu ulei + sare.</div></div>
+        <div class="prep-step"><div class="step-n">3</div><div>Puiul pe cartofi în tavă. Coace <strong>25–28 min</strong>. Odihnește 5 min. <em style="color:var(--blue)">⏱ ~40 min</em></div></div>
+        <div class="prep-tip"><strong>💡</strong> Crusta de muștar caramelizează frumos — nu o acoperi cu folie!</div>
+      </div>
+      <div class="meal-actions">
+        <button class="btn-eaten" id="eat-w2-4-1" onclick="toggleEatenW2(4,1)">✓ Am mâncat</button>
+        <button class="btn-edit-meal" onclick="openEditW2(4,1)">✏️ Modific rețeta</button>
+        <button class="btn-reroll" onclick="openReroll(4,1,'19:00')">🔀 Alt preparat</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- W2 SÂMBĂTĂ -->
+  <div class="day-page" id="mese2-5">
+    <div class="meal-card" id="mc-w2-5-0">
+      <div class="meal-head">
+        <div class="meal-head-left"><div class="meal-time">🕚 Ora 11:00</div><div class="meal-name" id="mn-w2-5-0">Ghiveci de legume cu carne</div></div>
+        <div class="meal-head-right"><div class="meal-kcal" id="mk-w2-5-0">950<small>kcal</small></div></div>
+      </div>
+      <div id="mi-w2-5-0">
+        <div class="ing-row"><span class="ing-n">🥩 Carne porc sau vită</span><span class="ing-q">350g</span></div>
+        <div class="ing-row"><span class="ing-n">🥔 Cartofi + morcovi + ardei</span><span class="ing-q">2 + 2 + 2 buc</span></div>
+        <div class="ing-row"><span class="ing-n">🍅 Roșii mari + bulion</span><span class="ing-q">2 buc + 200ml</span></div>
+        <div class="ing-row"><span class="ing-n">🧄 Ceapă + usturoi + cimbru + dafin</span><span class="ing-q">1 + 3 căței + după gust</span></div>
+      </div>
+      <div class="prep-wrap">
+        <div class="prep-label">👨‍🍳 Preparare</div>
+        <div class="prep-step"><div class="step-n">1</div><div>Taie carnea cuburi, rumenește în ulei <strong>5 min</strong>. Scoate.</div></div>
+        <div class="prep-step"><div class="step-n">2</div><div>Căliți ceapa <strong>3 min</strong>, adaugă morcovii și ardeii, <strong>5 min</strong>. Pune carnea înapoi.</div></div>
+        <div class="prep-step"><div class="step-n">3</div><div>Adaugă roșiile, bulionul, condimentele, 300ml apă. Fierbe la foc mic <strong>30 min</strong>.</div></div>
+        <div class="prep-step"><div class="step-n">4</div><div>Adaugă cartofii, fierbe <strong>20–25 min</strong>. Servește cu pătrunjel. <em style="color:var(--blue)">⏱ ~60 min</em></div></div>
+        <div class="prep-tip"><strong>💡</strong> Weekend = timp. Fă dublu și ai și duminică prânz gata.</div>
+      </div>
+      <div class="meal-actions">
+        <button class="btn-eaten" id="eat-w2-5-0" onclick="toggleEatenW2(5,0)">✓ Am mâncat</button>
+        <button class="btn-edit-meal" onclick="openEditW2(5,0)">✏️ Modific rețeta</button>
+        <button class="btn-reroll" onclick="openReroll(5,0,'11:00')">🔀 Alt preparat</button>
+      </div>
+    </div>
+    <div class="meal-card" id="mc-w2-5-1">
+      <div class="meal-head">
+        <div class="meal-head-left"><div class="meal-time">🕖 Ora 19:00</div><div class="meal-name" id="mn-w2-5-1">Clătite proteice cu brânză</div></div>
+        <div class="meal-head-right"><div class="meal-kcal" id="mk-w2-5-1">900<small>kcal</small></div></div>
+      </div>
+      <div id="mi-w2-5-1">
+        <div class="ing-row"><span class="ing-n">🥚 Ouă</span><span class="ing-q">4 buc</span></div>
+        <div class="ing-row"><span class="ing-n">🧀 Brânză de vaci slabă + cașcaval</span><span class="ing-q">200g + 100g felii</span></div>
+        <div class="ing-row"><span class="ing-n">🌾 Făină integrală + lapte</span><span class="ing-q">100g + 150ml</span></div>
+        <div class="ing-row"><span class="ing-n">🥬 Spanac proaspăt + smântână</span><span class="ing-q">100g + 50g</span></div>
+      </div>
+      <div class="prep-wrap">
+        <div class="prep-label">👨‍🍳 Preparare</div>
+        <div class="prep-step"><div class="step-n">1</div><div>Amestecă ouăle + făina + laptele + sare pentru aluat subțire de clătite.</div></div>
+        <div class="prep-step"><div class="step-n">2</div><div>Gătește clătitele subțiri în tigaie unsă. Umplutură: brânză de vaci + spanac tocat + sare + piper.</div></div>
+        <div class="prep-step"><div class="step-n">3</div><div>Umple, rulează sau pliază. Câteva felii cașcaval deasupra. Servește cu smântână. <em style="color:var(--blue)">⏱ ~30 min</em></div></div>
+      </div>
+      <div class="meal-actions">
+        <button class="btn-eaten" id="eat-w2-5-1" onclick="toggleEatenW2(5,1)">✓ Am mâncat</button>
+        <button class="btn-edit-meal" onclick="openEditW2(5,1)">✏️ Modific rețeta</button>
+        <button class="btn-reroll" onclick="openReroll(5,1,'19:00')">🔀 Alt preparat</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- W2 DUMINICĂ -->
+  <div class="day-page" id="mese2-6">
+    <div class="meal-card" id="mc-w2-6-0">
+      <div class="meal-head">
+        <div class="meal-head-left"><div class="meal-time">🕚 Ora 11:00</div><div class="meal-name" id="mn-w2-6-0">Cotlete de porc cu muștar și cartofi</div></div>
+        <div class="meal-head-right"><div class="meal-kcal" id="mk-w2-6-0">1050<small>kcal</small></div></div>
+      </div>
+      <div id="mi-w2-6-0">
+        <div class="ing-row"><span class="ing-n">🥩 Cotlete de porc</span><span class="ing-q">4 buc (~600g)</span></div>
+        <div class="ing-row"><span class="ing-n">🫙 Muștar boabe + miere</span><span class="ing-q">2L + 2L</span></div>
+        <div class="ing-row"><span class="ing-n">🥔 Cartofi + ceapă roșie</span><span class="ing-q">4 medii + 1 buc</span></div>
+        <div class="ing-row"><span class="ing-n">🌿 Rozmarin + ulei + sare + piper</span><span class="ing-q">după gust</span></div>
+      </div>
+      <div class="prep-wrap">
+        <div class="prep-label">👨‍🍳 Preparare</div>
+        <div class="prep-step"><div class="step-n">1</div><div>Cuptor 200°C. Amestecă muștar boabe + miere + sare + piper. Marinează cotletele <strong>10 min</strong>.</div></div>
+        <div class="prep-step"><div class="step-n">2</div><div>Taie cartofii și ceapa, asezonează cu ulei + sare + rozmarin. Pune pe tavă.</div></div>
+        <div class="prep-step"><div class="step-n">3</div><div>Cotletele deasupra legumelor. Coace <strong>30–35 min</strong>, întoarce la jumătate. <em style="color:var(--blue)">⏱ ~45 min</em></div></div>
+      </div>
+      <div class="meal-actions">
+        <button class="btn-eaten" id="eat-w2-6-0" onclick="toggleEatenW2(6,0)">✓ Am mâncat</button>
+        <button class="btn-edit-meal" onclick="openEditW2(6,0)">✏️ Modific rețeta</button>
+        <button class="btn-reroll" onclick="openReroll(6,0,'11:00')">🔀 Alt preparat</button>
+      </div>
+    </div>
+    <div class="meal-card" id="mc-w2-6-1">
+      <div class="meal-head">
+        <div class="meal-head-left"><div class="meal-time">🕖 Ora 19:00</div><div class="meal-name" id="mn-w2-6-1">Supă cremă de morcovi cu ghimbir</div></div>
+        <div class="meal-head-right"><div class="meal-kcal" id="mk-w2-6-1">800<small>kcal</small></div></div>
+      </div>
+      <div id="mi-w2-6-1">
+        <div class="ing-row"><span class="ing-n">🥕 Morcovi</span><span class="ing-q">600g</span></div>
+        <div class="ing-row"><span class="ing-n">🫚 Ghimbir proaspăt + usturoi + ceapă</span><span class="ing-q">2cm + 3 căței + 1 buc</span></div>
+        <div class="ing-row"><span class="ing-n">🥛 Lapte de cocos</span><span class="ing-q">150ml</span></div>
+        <div class="ing-row"><span class="ing-n">🍞 Pâine integrală prăjită</span><span class="ing-q">3 felii</span></div>
+      </div>
+      <div class="prep-wrap">
+        <div class="prep-label">👨‍🍳 Preparare</div>
+        <div class="prep-step"><div class="step-n">1</div><div>Căliți ceapa în ulei <strong>4 min</strong>. Adaugă morcovii rondele, usturoiul, ghimbirul ras.</div></div>
+        <div class="prep-step"><div class="step-n">2</div><div>Toarnă 1L supă de legume sau apă. Fierbe la foc mic <strong>20–25 min</strong> până morcovii sunt moi.</div></div>
+        <div class="prep-step"><div class="step-n">3</div><div>Pasează complet cu blenderul. Adaugă laptele de cocos + sare + piper. Servește cu pâine prăjită. <em style="color:var(--blue)">⏱ ~35 min</em></div></div>
+        <div class="prep-tip"><strong>💡</strong> Meal prep duminică: fierbe ouă + pregătește o porție din ghiveci pentru luni.</div>
+      </div>
+      <div class="meal-actions">
+        <button class="btn-eaten" id="eat-w2-6-1" onclick="toggleEatenW2(6,1)">✓ Am mâncat</button>
+        <button class="btn-edit-meal" onclick="openEditW2(6,1)">✏️ Modific rețeta</button>
+        <button class="btn-reroll" onclick="openReroll(6,1,'19:00')">🔀 Alt preparat</button>
+      </div>
+    </div>
+  </div>
+
+  </div><!-- /weekBlock2 -->
 </div>
 
 <!-- ══════ SCREEN: ANTRENAMENT ══════ -->
@@ -1054,6 +1493,174 @@ function buildCalendar() {
   }).join('');
 }
 
+// ══════ WEEK SELECTOR ══════
+function selectWeek(w) {
+  document.getElementById('weekBlock1').style.display = w === 1 ? 'block' : 'none';
+  document.getElementById('weekBlock2').style.display = w === 2 ? 'block' : 'none';
+  document.getElementById('wkSelBtn1').style.background = w === 1 ? 'var(--accent)' : 'var(--surface2)';
+  document.getElementById('wkSelBtn1').style.color = w === 1 ? '#0a0a0a' : 'var(--text2)';
+  document.getElementById('wkSelBtn1').style.border = w === 1 ? 'none' : '1px solid var(--border)';
+  document.getElementById('wkSelBtn2').style.background = w === 2 ? 'var(--accent)' : 'var(--surface2)';
+  document.getElementById('wkSelBtn2').style.color = w === 2 ? '#0a0a0a' : 'var(--text2)';
+  document.getElementById('wkSelBtn2').style.border = w === 2 ? 'none' : '1px solid var(--border)';
+}
+
+function showMeseDay2(i, btn) {
+  document.querySelectorAll('#weekBlock2 .day-page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('#meseTabs2 .day-tab').forEach(t => t.classList.remove('active'));
+  document.getElementById('mese2-' + i).classList.add('active');
+  if (btn) btn.classList.add('active');
+}
+
+// ══════ WEEK 2 EATEN ══════
+function toggleEatenW2(day, meal) {
+  const mem = loadMemory();
+  if (!mem.eatenW2) mem.eatenW2 = {};
+  const key = `${day}-${meal}`;
+  mem.eatenW2[key] = !mem.eatenW2[key];
+  saveMemory(mem);
+  applyEatenStateW2(day, meal, mem.eatenW2[key]);
+  if (mem.eatenW2[key]) showToast('✓ Masă bifată! 💪');
+}
+
+function applyEatenStateW2(day, meal, eaten) {
+  const card = document.getElementById(`mc-w2-${day}-${meal}`);
+  const btn = document.getElementById(`eat-w2-${day}-${meal}`);
+  if (!card || !btn) return;
+  if (eaten) {
+    card.classList.add('eaten');
+    btn.classList.add('done');
+    btn.textContent = '✓ Mâncat!';
+  } else {
+    card.classList.remove('eaten');
+    btn.classList.remove('done');
+    btn.textContent = '✓ Am mâncat';
+  }
+}
+
+// ══════ EDITARE REȚETĂ ══════
+let _editTarget = null;
+
+function openEdit(day, meal) {
+  const nameEl = document.getElementById(`mn-${day}-${meal}`);
+  const ingrEl = document.getElementById(`mi-${day}-${meal}`);
+  const prepEl = ingrEl ? ingrEl.closest('.meal-card').querySelector('.prep-wrap') : null;
+  _editTarget = { type: 'w1', day, meal };
+
+  document.getElementById('editMealName').textContent = nameEl ? nameEl.textContent : 'Rețetă';
+
+  // Extract current ingredients text
+  const ingRows = ingrEl ? Array.from(ingrEl.querySelectorAll('.ing-n')).map(el => el.textContent) : [];
+  document.getElementById('editIngr').value = ingRows.join('\n');
+
+  // Extract current prep steps
+  const steps = prepEl ? Array.from(prepEl.querySelectorAll('.prep-step div:last-child')).map(el => el.textContent.trim()) : [];
+  document.getElementById('editSteps').value = steps.join('\n');
+
+  document.getElementById('editOverlay').classList.add('open');
+}
+
+function openEditW2(day, meal) {
+  const nameEl = document.getElementById(`mn-w2-${day}-${meal}`);
+  const ingrEl = document.getElementById(`mi-w2-${day}-${meal}`);
+  const prepEl = ingrEl ? ingrEl.closest('.meal-card').querySelector('.prep-wrap') : null;
+  _editTarget = { type: 'w2', day, meal };
+
+  document.getElementById('editMealName').textContent = nameEl ? nameEl.textContent : 'Rețetă';
+
+  const ingRows = ingrEl ? Array.from(ingrEl.querySelectorAll('.ing-n')).map(el => el.textContent) : [];
+  document.getElementById('editIngr').value = ingRows.join('\n');
+
+  const steps = prepEl ? Array.from(prepEl.querySelectorAll('.prep-step div:last-child')).map(el => el.textContent.trim()) : [];
+  document.getElementById('editSteps').value = steps.join('\n');
+
+  document.getElementById('editOverlay').classList.add('open');
+}
+
+function closeEdit(e) {
+  if (e && e.target !== document.getElementById('editOverlay')) return;
+  closeEditBtn();
+}
+function closeEditBtn() {
+  document.getElementById('editOverlay').classList.remove('open');
+  _editTarget = null;
+}
+
+function saveEdit() {
+  if (!_editTarget) return;
+  const { type, day, meal } = _editTarget;
+  const prefix = type === 'w2' ? `w2-${day}` : `${day}`;
+
+  const ingrText = document.getElementById('editIngr').value.trim();
+  const stepsText = document.getElementById('editSteps').value.trim();
+
+  // Update ingredients display
+  const ingrEl = document.getElementById(`mi-${prefix}-${meal}`);
+  if (ingrEl) {
+    ingrEl.innerHTML = ingrText.split('\n').filter(l => l.trim()).map(l =>
+      `<div class="ing-row"><span class="ing-n">${l.trim()}</span><span class="ing-q"></span></div>`
+    ).join('');
+  }
+
+  // Update prep steps display
+  const prepEl = ingrEl ? ingrEl.closest('.meal-card').querySelector('.prep-wrap') : null;
+  if (prepEl) {
+    const label = prepEl.querySelector('.prep-label').outerHTML;
+    const newSteps = stepsText.split('\n').filter(l => l.trim()).map((l, i) =>
+      `<div class="prep-step"><div class="step-n">${i + 1}</div><div>${l.trim()}</div></div>`
+    ).join('');
+    prepEl.innerHTML = label + newSteps;
+  }
+
+  // Save to memory
+  const mem = loadMemory();
+  if (!mem.edits) mem.edits = {};
+  mem.edits[`${type}-${day}-${meal}`] = { ingr: ingrText, steps: stepsText };
+  saveMemory(mem);
+
+  closeEditBtn();
+  showToast('✓ Rețetă salvată!');
+}
+
+// Restore edits on load
+function restoreEdits() {
+  const mem = loadMemory();
+  if (!mem.edits) return;
+  for (const [key, val] of Object.entries(mem.edits)) {
+    const parts = key.split('-');
+    let prefix, meal;
+    if (parts[0] === 'w2') {
+      prefix = `w2-${parts[1]}`;
+      meal = parts[2];
+    } else {
+      prefix = parts[0];
+      meal = parts[1];
+    }
+    const ingrEl = document.getElementById(`mi-${prefix}-${meal}`);
+    if (ingrEl && val.ingr) {
+      ingrEl.innerHTML = val.ingr.split('\n').filter(l => l.trim()).map(l =>
+        `<div class="ing-row"><span class="ing-n">${l.trim()}</span><span class="ing-q"></span></div>`
+      ).join('');
+    }
+    const prepEl = ingrEl ? ingrEl.closest('.meal-card').querySelector('.prep-wrap') : null;
+    if (prepEl && val.steps) {
+      const label = prepEl.querySelector('.prep-label').outerHTML;
+      const newSteps = val.steps.split('\n').filter(l => l.trim()).map((l, i) =>
+        `<div class="prep-step"><div class="step-n">${i + 1}</div><div>${l.trim()}</div></div>`
+      ).join('');
+      prepEl.innerHTML = label + newSteps;
+    }
+  }
+  // Restore w2 eaten
+  if (mem.eatenW2) {
+    for (let d = 0; d < 7; d++) {
+      for (let m = 0; m < 2; m++) {
+        if (mem.eatenW2[`${d}-${m}`]) applyEatenStateW2(d, m, true);
+      }
+    }
+  }
+}
+
 // ══════ RESTORE ALL STATE ══════
 function restoreState() {
   const mem = loadMemory();
@@ -1160,6 +1767,7 @@ if(window.matchMedia('(display-mode: standalone)').matches)document.getElementBy
 
 // ══════ INIT ══════
 restoreState();
+restoreEdits();
 shopLoad();
 
 // Set today's workout tab
